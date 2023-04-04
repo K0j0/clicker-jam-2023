@@ -1,0 +1,13 @@
+ body
+{
+  background-color: brown;
+  text-align: center;
+}
+
+#clicker
+{
+	width: 800;
+	height: 800;
+	background-color: green;
+	display: inline-block;
+}
