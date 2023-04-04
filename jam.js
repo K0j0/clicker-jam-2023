@@ -77,10 +77,10 @@ function setup()
 	*/
 	
 	for(var i = 0; i < kAudioSourceCount; ++i) {
-		sounds1[i] = new Audio("audio/note0.wav");
-		sounds2[i] = new Audio("audio/thum.wav");
-		sounds3[i] = new Audio("audio/g4.wav");
-		sounds4[i] = new Audio("audio/dsharp.wav");
+		sounds1[i] = new Audio("audio/djembe-1.wav");
+		sounds2[i] = new Audio("audio/djembe-2.wav");
+		sounds3[i] = new Audio("audio/djembe-3.wav");
+		sounds4[i] = new Audio("audio/djembe-4.wav");
 	}
 	
 	uiText = new PIXI.Text('Shelter: 0');
@@ -92,7 +92,7 @@ function setup()
 	debugText.y = 0;
 
 	app.stage.addChild(uiText);
-	app.stage.addChild(debugText);
+	//app.stage.addChild(debugText);
 	
 	box1 = new PIXI.Graphics();
 	box2 = new PIXI.Graphics();
@@ -128,16 +128,16 @@ function setup()
 	box4.y = WINDOW_H/2;
 	
 	box1.eventMode = 'static';
-	box1.on('pointerup', onTap1 );
+	box1.on('pointerdown', onTap1 );
 	box1.cursor = 'pointer';
 	box2.eventMode = 'static';
-	box2.on('pointerup', onTap2 );
+	box2.on('pointerdown', onTap2 );
 	box3.cursor = 'pointer';
 	box3.eventMode = 'static';
-	box3.on('pointerup', onTap3 );
+	box3.on('pointerdown', onTap3 );
 	box4.cursor = 'pointer';
 	box4.eventMode = 'static';
-	box4.on('pointerup', onTap4 );
+	box4.on('pointerdown', onTap4 );
 	
 	app.stage.addChild(box1);
 	app.stage.addChild(box2);
@@ -147,7 +147,7 @@ function setup()
 	
 	app.ticker.add(tick);
 	
-	debugChangeBody();
+	//debugChangeBody();
 }
 
 function debugChangeBody()
