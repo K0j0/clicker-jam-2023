@@ -1,0 +1,5 @@
+-Add UI that shows number counting up
+-Make tapping button count up number
+-Have array of sound sources so that multiple sounds can play
+-Add down state to button and maybe raising up anim
+-Add greensock tweening to project

@@ -1,35 +1,69 @@
 console.log("Hi?");
 
-const app = new PIXI.Application({ background: '#1099bb' , width: 540, height: 960 });
-document.body.appendChild(app.view);
+/*
+Split into functions that do stuff
 
-const container = new PIXI.Container();
+Setup application
+-Draw stage
+-Create audio sources
+-Create UI
+-Make button(s?)
 
-app.stage.addChild(container);
+Callback functions
+-on button click
+-set UI text
+-play audio
+-debug print?
+*/
 
-// Create a new texture
-const texture = PIXI.Texture.from('batman.png');
+var app;
+var stage;
+var sprite;
+var sounds = [];
+const kAudioSourceCount = 10;
+var currSoundIndex = 0;
 
-// Create a 5x5 grid of bunnies
-for (let i = 0; i < 25; i++) {
-    const bunny = new PIXI.Sprite(texture);
-    bunny.anchor.set(0.5);
-    bunny.x = (i % 5) * 40;
-    bunny.y = Math.floor(i / 5) * 40;
-    container.addChild(bunny);
+function setup()
+{	
+	app = new PIXI.Application({ background: '#1099bb' , width: 540, height: 960 });
+	stage = app.stage;
+	document.body.appendChild(app.view);
+	
+	sprite = PIXI.Sprite.from('batman.png');
+	sprite.interactive = true;
+	sprite.cursor = 'pointer';
+	sprite.on('pointerdown', onTap );
+
+	stage.addChild(sprite);
+	
+	for(var i = 0; i < kAudioSourceCount; ++i) {
+		sounds[i] = new Audio("note0.wav");
+	}
+	
+	app.ticker.add(tick);
 }
 
-// Move container to the center
-container.x = app.screen.width / 2;
-container.y = app.screen.height / 2;
+function debugChangeBody()
+{
+	var dev_date = new Date().toLocaleString();
+	var p = document.createElement("p");
+	p.textContent = "Date: " + dev_date;
+	document.body.appendChild(p);
+}
 
-// Center bunny sprite in local container coordinates
-container.pivot.x = container.width / 2;
-container.pivot.y = container.height / 2;
+function playSound() {
+	var idx = currSoundIndex++ % kAudioSourceCount;
+	sounds[idx].play();
+}
 
-// Listen for animate update
-app.ticker.add((delta) => {
-    // rotate the container!
-    // use delta to create frame-independent transform
-    container.rotation -= 0.01 * delta;
-});
+function onTap()
+{
+	playSound();
+	console.log("tap");
+}
+
+function tick()
+{
+	//console.log("tock..");
+}
+
