@@ -91,9 +91,13 @@ function setup()
 	//app.stage.addChild(debugText);
 	
 	box1 = new PIXI.Graphics();
+	box1.boxIndex = 0;
 	box2 = new PIXI.Graphics();
+	box2.boxIndex = 1;
 	box3 = new PIXI.Graphics();
+	box3.boxIndex = 2;
 	box4 = new PIXI.Graphics();
+	box4.boxIndex = 3;
 
 	const kBoxWidth = 150;
 	const kBoxHeight = 150;
@@ -124,16 +128,16 @@ function setup()
 	box4.y = WINDOW_H/2;
 	
 	box1.eventMode = 'static';
-	box1.on('pointerdown', onTap1 );
+	box1.on('pointerdown', onTap, box1 );
 	box1.cursor = 'pointer';
 	box2.eventMode = 'static';
-	box2.on('pointerdown', onTap2 );
+	box2.on('pointerdown', onTap, box2 );
 	box3.cursor = 'pointer';
 	box3.eventMode = 'static';
-	box3.on('pointerdown', onTap3 );
+	box3.on('pointerdown', onTap, box3 );
 	box4.cursor = 'pointer';
 	box4.eventMode = 'static';
-	box4.on('pointerdown', onTap4 );
+	box4.on('pointerdown', onTap, box4 );
 	
 	app.stage.addChild(box1);
 	app.stage.addChild(box2);
@@ -156,6 +160,8 @@ function setup()
 	//debugChangeBody();
 }
 
+var audioTick;
+
 var acSoundBuff1;
 var acSoundBuff2;
 var acSoundBuff3;
@@ -163,23 +169,30 @@ var acSoundBuff4;
 function setupAudio()
 {
 	stage.removeChild(sprite);
+	
+	audioContext = new AudioContext(); 
+	// When audio context is created start interval to start keeping track of time
+	audioTick = 0;
+	setInterval(function(){
+		++audioTick;
+		console.log("Tick: " + audioTick);
+	}, 100);
 
-	audioContext = new AudioContext();
-
-    var url = "audio/djembe-1.wav";
+	var url = "audio/djembe-1.wav";
 	var request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.responseType = 'arraybuffer';
+	request.open('GET', url, true);
+	request.responseType = 'arraybuffer';
 
-    // Decode asynchronously
-    request.onload = function() {
-    audioContext.decodeAudioData(request.response, function(buffer) {
-        acSoundBuff1 = buffer;
+	// Decode asynchronously
+	request.onload = function() {
+	audioContext.decodeAudioData(request.response, function(buffer) {
+		acSoundBuff1 = buffer;
 		console.log("Got Sound Buffer1 Response");
+				
 		setupAudio2();
-    }, function(){ console.log("dang"); });
-    }
-    request.send();
+	}, function(){ console.log("dang"); });
+	}
+	request.send();			
 	
 	/*
 	url = "audio/djembe-2.wav";
@@ -307,9 +320,16 @@ function playSound(which) {
 	}
 }
 
-function onTap()
+function onTap(ctx)
 {
-	playSound();
+	var sources = [source1, source2, source3, source4];
+	var buffers = [acSoundBuff1, acSoundBuff2, acSoundBuff3, acSoundBuff4];
+	var idx = ctx.target.boxIndex;
+	console.log("tap: " + idx);
+	sources[idx] = audioContext.createBufferSource();
+    sources[idx].buffer = buffers[idx];
+    sources[idx].connect(audioContext.destination);
+    sources[idx].start(audioTick/10 + 1);
 	console.log("tap");
 	++count;
 }
@@ -318,27 +338,27 @@ var source1;
 var source2;
 var source3;
 var source4;
-function onTap1()
+function onTap1(ctx)
 {
 	/*
 	playSound(0);
 	console.log("tap 1");
 	++count;
 	*/
-	console.log("tap 1a");
-	source1 = audioContext.createBufferSource(); // creates a sound source
-    source1.buffer = acSoundBuff1;                    // tell the source which sound to play
-    source1.connect(audioContext.destination);	       // connect the source to the context's destination (the speakers)
-    source1.start(0);
+	console.log("tap 1ka");
+	source1 = audioContext.createBufferSource();
+	source1.buffer = acSoundBuff1;
+	source1.connect(audioContext.destination);
+    source1.start(audioTick/10 + 1);
 }
 
-function onTap2()
+function onTap2(ctx)
 {
 	console.log("tap 2");
 	source2 = audioContext.createBufferSource();
     source2.buffer = acSoundBuff2;
     source2.connect(audioContext.destination);
-    source2.start(0);
+    source2.start(audioTick/10 + 3);
 	++count;
 }
 

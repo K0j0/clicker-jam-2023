@@ -1,3 +1,9 @@
+-Sequence detection and looping.
+Have a function running every frame/tick > Test playing a sound at certain times > Keep track of the last 10 button pressed and when > Try to identify a pattern
+
+-Fullscreen?
+-Get width and height > figure out which is smaller > make that the width > set height to 16:9 of that
+
 -Add UI that shows number counting up
 -Make tapping button count up number
 -Have array of sound sources so that multiple sounds can play
