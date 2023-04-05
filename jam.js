@@ -33,6 +33,9 @@ var debugText;
 var count = 0;
 var box1, box2, box3, box4;
 
+var audioContext;
+var audioLoader;
+
 function SetUIText(newText)
 {
 	uiText.text = newText;
@@ -67,14 +70,7 @@ function setup()
 	stage = app.stage;
 	document.body.appendChild(app.view);
 	
-	/*
-	sprite = PIXI.Sprite.from('batman.png');
-	//sprite.interactive = true;
-	sprite.eventMode = 'static';
-	sprite.cursor = 'pointer';
-	sprite.on('pointerdown', onTap );
-	stage.addChild(sprite);
-	*/
+	
 	
 	for(var i = 0; i < kAudioSourceCount; ++i) {
 		sounds1[i] = new Audio("audio/djembe-1.wav");
@@ -145,9 +141,142 @@ function setup()
 	app.stage.addChild(box4);
 	
 	
+	/*
+	*/
+	sprite = PIXI.Sprite.from('batman.png');
+	//sprite.interactive = true;
+	sprite.eventMode = 'static';
+	sprite.cursor = 'pointer';
+	sprite.on('pointerdown', setupAudio );
+	stage.addChild(sprite);
+	//setupAudio();
+	
 	app.ticker.add(tick);
 	
 	//debugChangeBody();
+}
+
+var acSoundBuff1;
+var acSoundBuff2;
+var acSoundBuff3;
+var acSoundBuff4;
+function setupAudio()
+{
+	stage.removeChild(sprite);
+
+	audioContext = new AudioContext();
+
+    var url = "audio/djembe-1.wav";
+	var request = new XMLHttpRequest();
+    request.open('GET', url, true);
+    request.responseType = 'arraybuffer';
+
+    // Decode asynchronously
+    request.onload = function() {
+    audioContext.decodeAudioData(request.response, function(buffer) {
+        acSoundBuff1 = buffer;
+		console.log("Got Sound Buffer1 Response");
+		setupAudio2();
+    }, function(){ console.log("dang"); });
+    }
+    request.send();
+	
+	/*
+	url = "audio/djembe-2.wav";
+	request = new XMLHttpRequest();
+    request.open('GET', url, true);
+    request.responseType = 'arraybuffer';
+
+    // Decode asynchronously
+    request.onload = function() {
+    audioContext.decodeAudioData(request.response, function(buffer) {
+        acSoundBuff2 = buffer;
+		console.log("Got Sound Buffer2 Response");
+    }, function(){ console.log("dang"); });
+    }
+    request.send();
+	
+	url = "audio/djembe-3.wav";
+	request = new XMLHttpRequest();
+    request.open('GET', url, true);
+    request.responseType = 'arraybuffer';
+
+    // Decode asynchronously
+    request.onload = function() {
+    audioContext.decodeAudioData(request.response, function(buffer) {
+        acSoundBuff3 = buffer;
+		console.log("Got Sound Buffer3 Response");
+    }, function(){ console.log("dang"); });
+    }
+    request.send();
+	
+	url = "audio/djembe-4.wav";
+	request = new XMLHttpRequest();
+    request.open('GET', url, true);
+    request.responseType = 'arraybuffer';
+
+    // Decode asynchronously
+    request.onload = function() {
+    audioContext.decodeAudioData(request.response, function(buffer) {
+        acSoundBuff4 = buffer;
+		console.log("Got Sound Buffer4 Response");
+    }, function(){ console.log("dang"); });
+    }
+    request.send();
+	*/
+}
+
+function setupAudio2()
+{
+	var url = "audio/djembe-2.wav";
+	var request = new XMLHttpRequest();
+    request.open('GET', url, true);
+    request.responseType = 'arraybuffer';
+
+    // Decode asynchronously
+    request.onload = function() {
+    audioContext.decodeAudioData(request.response, function(buffer) {
+        acSoundBuff2 = buffer;
+		console.log("Got Sound Buffer2 Response");	
+		setupAudio3();
+    }, function(){ console.log("dang"); });
+    }
+    request.send();
+}
+
+function setupAudio3()
+{
+	var url = "audio/djembe-3.wav";
+	var request = new XMLHttpRequest();
+    request.open('GET', url, true);
+    request.responseType = 'arraybuffer';
+
+    // Decode asynchronously
+    request.onload = function() {
+    audioContext.decodeAudioData(request.response, function(buffer) {
+        acSoundBuff3 = buffer;
+		console.log("Got Sound Buffer3 Response");
+		setupAudio4();
+    }, function(){ console.log("dang"); });
+    }
+    request.send();
+}
+
+function setupAudio4()
+{
+	var url = "audio/djembe-4.wav";
+	var request = new XMLHttpRequest();
+    request.open('GET', url, true);
+    request.responseType = 'arraybuffer';
+
+    // Decode asynchronously
+    request.onload = function() {
+    audioContext.decodeAudioData(request.response, function(buffer) {
+        acSoundBuff4 = buffer;
+		console.log("Got Sound Buffer4 Response");		
+    }, function(){ console.log("dang"); });
+    }
+    request.send();
 }
 
 function debugChangeBody()
@@ -185,38 +314,51 @@ function onTap()
 	++count;
 }
 
-function onTap()
-{
-	playSound();
-	console.log("tap");
-	++count;
-}
-
+var source1;
+var source2;
+var source3;
+var source4;
 function onTap1()
 {
+	/*
 	playSound(0);
 	console.log("tap 1");
 	++count;
+	*/
+	console.log("tap 1a");
+	source1 = audioContext.createBufferSource(); // creates a sound source
+    source1.buffer = acSoundBuff1;                    // tell the source which sound to play
+    source1.connect(audioContext.destination);	       // connect the source to the context's destination (the speakers)
+    source1.start(0);
 }
 
 function onTap2()
 {
-	playSound(1);
 	console.log("tap 2");
+	source2 = audioContext.createBufferSource();
+    source2.buffer = acSoundBuff2;
+    source2.connect(audioContext.destination);
+    source2.start(0);
 	++count;
 }
 
 function onTap3()
 {
-	playSound(2);
 	console.log("tap 3");
+	source3 = audioContext.createBufferSource();
+    source3.buffer = acSoundBuff3;
+    source3.connect(audioContext.destination);
+    source3.start(0);
 	++count;
 }
 
 function onTap4()
 {
-	playSound(3);
 	console.log("tap 4");
+	source4 = audioContext.createBufferSource();
+    source4.buffer = acSoundBuff4;
+    source4.connect(audioContext.destination);
+    source4.start(0);
 	++count;
 }
 
