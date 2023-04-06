@@ -1,6 +1,9 @@
 -Sequence detection and looping.
 Have a function running every frame/tick > Test playing a sound at certain times > Keep track of the last 10 button pressed and when > Try to identify a pattern
 
+-To find rhythm:
+Iterate over all elements > Keep track of first and last time of a note > identify largest gap > What are the notes between > What are the intervals between those notes? > Store as lastFrame > Do it again on first frame > Do the notes match a known beat? > Are the intervals close enough too? > When was that beat learned > If x amount of time has passed then automatically play that beat until there's no tapping for 5 seconds
+
 -Fullscreen?
 -Get width and height > figure out which is smaller > make that the width > set height to 16:9 of that
 

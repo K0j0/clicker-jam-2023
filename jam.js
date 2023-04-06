@@ -158,6 +158,8 @@ function setup()
 	app.ticker.add(tick);
 	
 	//debugChangeBody();
+	
+	InitBeatCheck();
 }
 
 var audioTick;
@@ -175,7 +177,8 @@ function setupAudio()
 	audioTick = 0;
 	setInterval(function(){
 		++audioTick;
-		console.log("Tick: " + audioTick);
+		//console.log("Tick: " + audioTick);
+		CheckBeat();
 	}, 100);
 
 	var url = "audio/djembe-1.wav";
@@ -320,70 +323,138 @@ function playSound(which) {
 	}
 }
 
+function Tap(_id, _tick){
+	this.idx = _id;
+	this.tick = _tick;
+	this.age = 0;
+}
+
+Tap.prototype.toString = function TapToString() {
+  return `{id:${this.idx}, tick:${this.tick}, age:${this.age}}`;
+};
+
 function onTap(ctx)
 {
 	var sources = [source1, source2, source3, source4];
 	var buffers = [acSoundBuff1, acSoundBuff2, acSoundBuff3, acSoundBuff4];
 	var idx = ctx.target.boxIndex;
-	console.log("tap: " + idx);
+	console.log("Tap index: " + idx + " at: " + audioTick + " ( " + sampleIndex + ")");
 	sources[idx] = audioContext.createBufferSource();
     sources[idx].buffer = buffers[idx];
     sources[idx].connect(audioContext.destination);
     sources[idx].start(audioTick/10 + 1);
-	console.log("tap");
+	console.log("tap. sampleIndex? " + sampleIndex);
 	++count;
+	
+	/*
+	var o = {id:idx, tick:audioTick
+	, sIndex:sampleIndex, age: 0};
+	*/
+	var o = new Tap(idx, audioTick);
+	var i = tapIndex++ % MAX_BEAT_LENGTH;
+	lastTaps[i] = o;
+	
+	samples[sampleIndex] = o;
 }
 
 var source1;
 var source2;
 var source3;
 var source4;
-function onTap1(ctx)
-{
-	/*
-	playSound(0);
-	console.log("tap 1");
-	++count;
-	*/
-	console.log("tap 1ka");
-	source1 = audioContext.createBufferSource();
-	source1.buffer = acSoundBuff1;
-	source1.connect(audioContext.destination);
-    source1.start(audioTick/10 + 1);
-}
-
-function onTap2(ctx)
-{
-	console.log("tap 2");
-	source2 = audioContext.createBufferSource();
-    source2.buffer = acSoundBuff2;
-    source2.connect(audioContext.destination);
-    source2.start(audioTick/10 + 3);
-	++count;
-}
-
-function onTap3()
-{
-	console.log("tap 3");
-	source3 = audioContext.createBufferSource();
-    source3.buffer = acSoundBuff3;
-    source3.connect(audioContext.destination);
-    source3.start(0);
-	++count;
-}
-
-function onTap4()
-{
-	console.log("tap 4");
-	source4 = audioContext.createBufferSource();
-    source4.buffer = acSoundBuff4;
-    source4.connect(audioContext.destination);
-    source4.start(0);
-	++count;
-}
 
 function tick()
 {
 	SetUIText("Shelter: " + count);
 }
 
+
+/*
+Figure out beats
+*/
+
+const MAX_BEAT_LENGTH = 6;
+const SAMPLE_LENGTH = MAX_BEAT_LENGTH * 10;
+var samples = [];
+var lastTaps = [];
+var tapIndex;
+var sampleIndex;
+
+function InitBeatCheck()
+{
+	tapIndex = 0;
+	sampleIndex = 0;
+	for(let i = 0; i < MAX_BEAT_LENGTH; ++i) {
+		lastTaps.push(0);
+		
+		for(let j = 0; j < 10; ++j) {
+			samples.push(0);
+		}
+	}
+}
+
+function printArray(name, arr) {
+	var s = "";
+	for(const e of arr)
+	{
+		s += e + ",";
+	}
+	console.log(name + "[" + s + "]");
+}
+
+var sampleCheckStartIndex = 0;
+function CheckBeat()
+{
+	var noteFirst = [-1, -1, -1, -1];
+	var noteLast = [-1, -1, -1, -1];
+	
+	//console.log("\n START \n");
+	var count = 0;
+	while(count < SAMPLE_LENGTH)
+	{
+		//let startIdx = sampleIndex % SAMPLE_LENGTH;
+		let indexF = (sampleIndex + count) % SAMPLE_LENGTH;
+		let indexB = (sampleIndex - (count+1)) < 0 ? SAMPLE_LENGTH + (sampleIndex - (count+1)) : (sampleIndex - (count+1));
+		
+		/*
+		Iterate from "front" forward
+		Iterate from "back" backwards
+		Store first and last values for each by id
+		*/
+		
+		console.log(`indexF: ${indexF} | indexB: ${indexB}`);
+		var s = samples[indexF];
+		if(0 != s) {
+			noteFirst[s.idx] = s;
+			
+			/*
+			console.log("Found tap at " + count + " | " + indexF
+			+ " | " + s.age);
+			*/
+			if(s.age >= SAMPLE_LENGTH) {
+				samples[indexF] = 0;
+			}
+			++s.age;			
+		}
+		
+		/*
+		Have it so taps "age out". Keep track of index they are tapped at and in this function check diff between their tapped index and current index. When that diff is the sample length then delete the tap so it's no longer considered.
+		
+		Limited to only 1 tap per tick this way. Could setup an array of taps later.
+		*/
+		
+		++count;
+	}
+	
+	/*
+	for(let i = 0; i < SAMPLE_LENGTH; ++i) {
+		if(0 != samples[i]) {
+			console.log("Found tap at " + i);
+		}
+	}
+	*/
+	
+	++sampleIndex;
+	sampleIndex %= SAMPLE_LENGTH;
+	
+	printArray("noteFirst", noteFirst);
+}
