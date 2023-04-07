@@ -41,6 +41,7 @@ function SetUIText(newText)
 	uiText.text = newText;
 }
 
+var bar;
 function setup()
 {	
 	/*
@@ -139,10 +140,16 @@ function setup()
 	box4.eventMode = 'static';
 	box4.on('pointerdown', onTap, box4 );
 	
+	bar = new PIXI.Graphics();
+	bar.beginFill(0xFFFFFF);
+	bar.drawRect(0, 0, 10, WINDOW_H);
+	app.stage.addChild(bar);
+	
 	app.stage.addChild(box1);
 	app.stage.addChild(box2);
 	app.stage.addChild(box3);
 	app.stage.addChild(box4);
+	
 	
 	
 	/*
@@ -170,7 +177,8 @@ function setupAudio()
 {
 	stage.removeChild(sprite);
 	
-	audioContext = new AudioContext(); 
+	audioContext = new AudioContext();
+	TweenLite.to(bar, {x:WINDOW_W, duration:4, repeat:-1, ease: "linear"});
 	// When audio context is created start interval to start keeping track of time
 	audioTick = 0;
 	setInterval(function(){
