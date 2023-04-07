@@ -16,26 +16,6 @@ Callback functions
 -debug print?
 */
 
-var app;
-var stage;
-var sprite;
-var WINDOW_W = 800;
-var WINDOW_H = 800;
-var sounds = [];
-var sounds1 = [];
-var sounds2 = [];
-var sounds3 = [];
-var sounds4 = [];
-const kAudioSourceCount = 10;
-var currSoundIndex = 0;
-var uiText;
-var debugText;
-var count = 0;
-var box1, box2, box3, box4;
-
-var audioContext;
-var audioLoader;
-
 function SetUIText(newText)
 {
 	uiText.text = newText;
@@ -44,26 +24,7 @@ function SetUIText(newText)
 var bar;
 function setup()
 {	
-	/*
-	var dimension_1 = window.outerHeight;
-	var dimension_2 = window.outerWidth;
-	var tall = dimension_1 > dimension_2;
-	if(tall) {
-		WINDOW_W = dimension_2;
-		WINDOW_H = dimension_1;
-	}
-	else {
-		WINDOW_W = dimension_1;
-		WINDOW_H = dimension_2;
-	}
-	
-	console.log("Window is " + (tall ? "tall" : "short") + " at (" + WINDOW_W + ", " + WINDOW_H + ")");
-	*/
-	
-	var clickerDiv = document.getElementById("clicker");
-	
-	app = new PIXI.Application({ 
-		//resizeTo:clickerDiv
+	app = new PIXI.Application({
 		 backgroundColor: '#1099bb'
 		, w: WINDOW_W
 		, h: WINDOW_H
@@ -71,26 +32,34 @@ function setup()
 	stage = app.stage;
 	document.body.appendChild(app.view);
 	
-	
-	
-	for(var i = 0; i < kAudioSourceCount; ++i) {
-		sounds1[i] = new Audio("audio/djembe-1.wav");
-		sounds2[i] = new Audio("audio/djembe-2.wav");
-		sounds3[i] = new Audio("audio/djembe-3.wav");
-		sounds4[i] = new Audio("audio/djembe-4.wav");
-	}
-	
 	uiText = new PIXI.Text('Shelter: 0');
 	uiText.x = 50;
 	uiText.y = 10;
+	app.stage.addChild(uiText);
 	
 	debugText = new PIXI.Text('DEBUG');
 	debugText.x = 500;
 	debugText.y = 0;
-
-	app.stage.addChild(uiText);
 	//app.stage.addChild(debugText);
 	
+	makeBoxes();
+	
+	sprite = PIXI.Sprite.from('batman.png');
+	//sprite.interactive = true;
+	sprite.eventMode = 'static';
+	sprite.cursor = 'pointer';
+	sprite.on('pointerdown', setupAudio );
+	sprite.anchor.x = .5;
+	sprite.anchor.y = .5;
+	sprite.x = WINDOW_W/2;
+	sprite.y = WINDOW_H/2;
+	stage.addChild(sprite);
+	
+	app.ticker.add(tick);
+}
+
+function makeBoxes()
+{
 	box1 = new PIXI.Graphics();
 	box1.boxIndex = 0;
 	box2 = new PIXI.Graphics();
@@ -100,8 +69,7 @@ function setup()
 	box4 = new PIXI.Graphics();
 	box4.boxIndex = 3;
 
-	const kBoxWidth = 150;
-	const kBoxHeight = 150;
+	
 	// Rectangle
 	box1.beginFill(0xFF0000);
 	box1.drawRect(-kBoxWidth/2, -kBoxHeight/2, kBoxWidth, kBoxHeight);
@@ -149,22 +117,6 @@ function setup()
 	app.stage.addChild(box2);
 	app.stage.addChild(box3);
 	app.stage.addChild(box4);
-	
-	
-	
-	/*
-	*/
-	sprite = PIXI.Sprite.from('batman.png');
-	//sprite.interactive = true;
-	sprite.eventMode = 'static';
-	sprite.cursor = 'pointer';
-	sprite.on('pointerdown', setupAudio );
-	stage.addChild(sprite);
-	//setupAudio();
-	
-	app.ticker.add(tick);
-	
-	//debugChangeBody();
 }
 
 var audioTick;
@@ -173,10 +125,16 @@ var acSoundBuff1;
 var acSoundBuff2;
 var acSoundBuff3;
 var acSoundBuff4;
+
+const SOUND_LIST = ["audio/djembe-1.wav"
+					,"audio/djembe-2.wav"
+					,"audio/djembe-3.wav"
+					,"audio/djembe-4.wav"];
+var BUFFER_LIST = [{},{},{},{}];				
+
 function setupAudio()
 {
 	stage.removeChild(sprite);
-	
 	audioContext = new AudioContext();	
 	// When audio context is created start interval to start keeping track of time
 	audioTick = 0;	
@@ -195,7 +153,9 @@ function setupAudio()
 		setupAudio2();
 	}, function(){ console.log("dang"); });
 	}
-	request.send();			
+	//request.send();		
+
+		LoadSounds(SOUND_LIST, BUFFER_LIST);
 	
 	/*
 	url = "audio/djembe-2.wav";
@@ -348,14 +308,14 @@ function onTap(ctx)
 	}
 	// TODO: Do -this elsewhere and once
 	var sources = [source1, source2, source3, source4];
-	var buffers = [acSoundBuff1, acSoundBuff2, acSoundBuff3, acSoundBuff4];
-	autoSources = [source1, source2, source3, source4];
+	//var buffers = [acSoundBuff1, acSoundBuff2, acSoundBuff3, acSoundBuff4];
+	autoSources = [];
 	autoBuffers = [acSoundBuff1, acSoundBuff2, acSoundBuff3, acSoundBuff4];
 	
 	var idx = ctx.target.boxIndex;
 	console.log("Tap index: " + idx + " at: " + audioTick + " ( " + (audioTick % M_LEN_MOD) + ")");
 	sources[idx] = audioContext.createBufferSource();
-    sources[idx].buffer = buffers[idx];
+    sources[idx].buffer = BUFFER_LIST[idx];
     sources[idx].connect(audioContext.destination);
     //sources[idx].start(audioTick/10 + 1);
 	sources[idx].start(0);
@@ -433,7 +393,7 @@ function CheckBeat()
 				printArray(`A Beat[${i}]`, measureNotes);
 				for(let ii = 0; ii < aBeat.length; ++ii) {
 					autoSources[i] = audioContext.createBufferSource();
-					autoSources[i].buffer = autoBuffers[aBeat[ii].idx];
+					autoSources[i].buffer = BUFFER_LIST[aBeat[ii].idx];
 					autoSources[i].connect(audioContext.destination);
 					var aTime = (audioTick / 10) + (aBeat[ii].tick / 10);
 					autoSources[i].start(aTime);
