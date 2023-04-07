@@ -119,13 +119,6 @@ function makeBoxes()
 	app.stage.addChild(box4);
 }
 
-var audioTick;
-
-var acSoundBuff1;
-var acSoundBuff2;
-var acSoundBuff3;
-var acSoundBuff4;
-
 const SOUND_LIST = ["audio/djembe-1.wav"
 					,"audio/djembe-2.wav"
 					,"audio/djembe-3.wav"
@@ -148,26 +141,11 @@ function debugChangeBody()
 	debugText.text = "Date: " + dev_date;
 }
 
-function playSound(which) {
-	var idx = currSoundIndex++ % kAudioSourceCount;
-	switch(which)
-	{
-		case 0:
-		sounds1[idx].play();
-		break;
-		case 1:
-		sounds2[idx].play();
-		break;
-		case 2:
-		sounds3[idx].play();
-		break;
-		case 3:
-		sounds4[idx].play();
-		break;
-		default:
-		console.log("-no sound-");
-		break;
-	}
+function playSound(which, when) {
+	var sound = audioContext.createBufferSource();
+    sound.buffer = BUFFER_LIST[which];
+    sound.connect(audioContext.destination);
+	sound.start(when);
 }
 
 function Tap(_id, _tick){
@@ -178,6 +156,8 @@ function Tap(_id, _tick){
 Tap.prototype.toString = function TapToString() {
   return `{id:${this.idx}, tick:${this.tick}}`;
 };
+
+
 
 var autoSources;
 var autoBuffers;
@@ -192,19 +172,12 @@ function onTap(ctx)
 		}, TICK_LENGTH);
 		TweenLite.to(bar, {x:WINDOW_W, duration:(MEASURE_LENGTH/1000), repeat:-1, ease: "linear"});
 	}
-	// TODO: Do -this elsewhere and once
-	var sources = [source1, source2, source3, source4];
-	//var buffers = [acSoundBuff1, acSoundBuff2, acSoundBuff3, acSoundBuff4];
 	autoSources = [];
-	autoBuffers = BUFFER_LIST; // Should be a copy?
+	autoBuffers = [...BUFFER_LIST]; // Should be a copy?
 	
 	var idx = ctx.target.boxIndex;
+	playSound(idx, 0);
 	console.log("Tap index: " + idx + " at: " + audioTick + " ( " + (audioTick % M_LEN_MOD) + ")");
-	sources[idx] = audioContext.createBufferSource();
-    sources[idx].buffer = BUFFER_LIST[idx];
-    sources[idx].connect(audioContext.destination);
-    //sources[idx].start(audioTick/10 + 1);
-	sources[idx].start(0);
 	++count;
 	
 	var o = new Tap(idx, audioTick % M_LEN_MOD);
@@ -212,24 +185,15 @@ function onTap(ctx)
 	
 	if(once) {
 		once = false;
+		hasTapped = true;
 		CheckBeat();
 	}
 }
-
-var source1;
-var source2;
-var source3;
-var source4;
 
 function tick()
 {
 	SetUIText("Shelter: " + count);
 }
-
-
-/*
-Figure out beats
-*/
 
 function printArray(name, arr) {
 	var s = "";
@@ -255,6 +219,7 @@ const MEASURE_LENGTH =  (1 / (BPM / 60) * 1000); // milliseconds
 const M_LEN_MOD = MEASURE_LENGTH / TICK_LENGTH;
 var lastMeasure = [];
 var beatCount = 0;
+var hasTapped = false;
 function CheckBeat()
 {
 	if(audioTick % M_LEN_MOD == 0 && audioTick > 0) {
@@ -279,7 +244,7 @@ function CheckBeat()
 				printArray(`A Beat[${i}]`, measureNotes);
 				for(let ii = 0; ii < aBeat.length; ++ii) {
 					autoSources[i] = audioContext.createBufferSource();
-					autoSources[i].buffer = BUFFER_LIST[aBeat[ii].idx];
+					autoSources[i].buffer = autoBuffers[aBeat[ii].idx];
 					autoSources[i].connect(audioContext.destination);
 					var aTime = (audioTick / 10) + (aBeat[ii].tick / 10);
 					autoSources[i].start(aTime);
@@ -297,7 +262,10 @@ function CheckBeat()
 	
 	console.log("Tick: " + GET_TICKS());
 	printArray("Measure", measureNotes);
-	++audioTick;
+	if(hasTapped) {
+		++audioTick;
+	}
+		
 }
 
 function compareBeats(currMeasure, lastMeasure)

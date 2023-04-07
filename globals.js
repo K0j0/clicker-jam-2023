@@ -18,3 +18,6 @@ const kBoxHeight = 150;
 
 var sources;
 const SOURCE_COUNT = 4;
+
+
+var audioTick;
