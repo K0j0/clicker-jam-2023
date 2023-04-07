@@ -150,7 +150,8 @@ function playSound(which, when) {
 
 function Tap(_id, _tick){
 	this.idx = _id;
-	this.tick = _tick;
+	this.tick = _tick % M_LEN_MOD;
+	this.tickTrue = _tick;
 }
 
 Tap.prototype.toString = function TapToString() {
@@ -180,7 +181,7 @@ function onTap(ctx)
 	console.log("Tap index: " + idx + " at: " + audioTick + " ( " + (audioTick % M_LEN_MOD) + ")");
 	++count;
 	
-	var o = new Tap(idx, audioTick % M_LEN_MOD);
+	var o = new Tap(idx, audioTick);
 	measureNotes.push(o);
 	
 	if(once) {
@@ -246,9 +247,9 @@ function CheckBeat()
 					autoSources[i] = audioContext.createBufferSource();
 					autoSources[i].buffer = autoBuffers[aBeat[ii].idx];
 					autoSources[i].connect(audioContext.destination);
-					var aTime = (audioTick / 10) + (aBeat[ii].tick / 10);
+					var aTime = (audioTick / 10) + (aBeat[ii].tickTrue / 10);
 					autoSources[i].start(aTime);
-					var dTime = (aBeat[ii].tick);
+					var dTime = (aBeat[ii].tickTrue);
 					console.log(`Play ${aBeat[ii].idx} at ${dTime} | ${audioTick % M_LEN_MOD}`);
 				}
 			}
