@@ -177,15 +177,9 @@ function setupAudio()
 {
 	stage.removeChild(sprite);
 	
-	audioContext = new AudioContext();
-	TweenLite.to(bar, {x:WINDOW_W, duration:4, repeat:-1, ease: "linear"});
+	audioContext = new AudioContext();	
 	// When audio context is created start interval to start keeping track of time
-	audioTick = 0;
-	setInterval(function(){
-		++audioTick;
-		//console.log("Tick: " + audioTick);
-		CheckBeat();
-	}, TICK_LENGTH);
+	audioTick = 0;	
 
 	var url = "audio/djembe-1.wav";
 	var request = new XMLHttpRequest();
@@ -340,8 +334,18 @@ Tap.prototype.toString = function TapToString() {
 
 var autoSources;
 var autoBuffers;
+var once = true;
 function onTap(ctx)
 {
+	if(once)
+	{		
+		setInterval(function(){		
+			//console.log("Tick: " + audioTick);
+			CheckBeat();
+		}, TICK_LENGTH);
+		TweenLite.to(bar, {x:WINDOW_W, duration:(MEASURE_LENGTH/1000), repeat:-1, ease: "linear"});
+		//return;
+	}
 	// TODO: Do -this elsewhere and once
 	var sources = [source1, source2, source3, source4];
 	var buffers = [acSoundBuff1, acSoundBuff2, acSoundBuff3, acSoundBuff4];
@@ -359,6 +363,11 @@ function onTap(ctx)
 	
 	var o = new Tap(idx, audioTick % M_LEN_MOD);
 	measureNotes.push(o);
+	
+	if(once) {
+		once = false;
+		CheckBeat();
+	}
 }
 
 var source1;
@@ -385,18 +394,24 @@ function printArray(name, arr) {
 	console.log(name + "[" + s + "]");
 }
 
+function GET_TICKS()
+{
+	return audioTick % M_LEN_MOD;
+}
+
 var measure = 0;
 var sampleCheckStartIndex = 0;
 var measureNotes = [];
 var autoBeats = [];
 const TICK_LENGTH = 100; 	// milliseconds
-const MEASURE_LENGTH = 4000; // milliseconds
+const BPM = 15;
+const MEASURE_LENGTH =  (1 / (BPM / 60) * 1000); // milliseconds
 const M_LEN_MOD = MEASURE_LENGTH / TICK_LENGTH;
 var lastMeasure = [];
 var beatCount = 0;
 function CheckBeat()
 {
-	if(audioTick % M_LEN_MOD == 0) {
+	if(audioTick % M_LEN_MOD == 0 && audioTick > 0) {
 		console.log("New Measure");
 		++measure;
 		
@@ -415,30 +430,28 @@ function CheckBeat()
 			
 			for(let i = 0; i < autoBeats.length; ++i) {
 				let aBeat = autoBeats[i];
+				printArray(`A Beat[${i}]`, measureNotes);
 				for(let ii = 0; ii < aBeat.length; ++ii) {
 					autoSources[i] = audioContext.createBufferSource();
 					autoSources[i].buffer = autoBuffers[aBeat[ii].idx];
 					autoSources[i].connect(audioContext.destination);
-					autoSources[i].start((audioTick / 10) + (aBeat[ii].tick / 10));
+					var aTime = (audioTick / 10) + (aBeat[ii].tick / 10);
+					autoSources[i].start(aTime);
+					var dTime = (aBeat[ii].tick);
+					console.log(`Play ${aBeat[ii].idx} at ${dTime} | ${audioTick % M_LEN_MOD}`);
 				}
 			}
-			/*
-			let count = 0;
-			for(const b of measureNotes){
-				autoSources[count] = audioContext.createBufferSource();
-				autoSources[count].buffer = autoBuffers[b.idx];
-				autoSources[count].connect(audioContext.destination);
-				autoSources[count].start((audioTick / 10) + (b.tick / 10));
-				++count;
-			}
-			*/
 		}
 		
-		lastMeasure = measureNotes;
+		if(0 == beatCount){
+			lastMeasure = measureNotes;
+		}
 		measureNotes = [];
 	}
 	
+	console.log("Tick: " + GET_TICKS());
 	printArray("Measure", measureNotes);
+	++audioTick;
 }
 
 function compareBeats(currMeasure, lastMeasure)
