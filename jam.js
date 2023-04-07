@@ -380,6 +380,7 @@ function printArray(name, arr) {
 var measure = 0;
 var sampleCheckStartIndex = 0;
 var measureNotes = [];
+var autoBeats = [];
 const TICK_LENGTH = 100; 	// milliseconds
 const MEASURE_LENGTH = 4000; // milliseconds
 const M_LEN_MOD = MEASURE_LENGTH / TICK_LENGTH;
@@ -393,16 +394,27 @@ function CheckBeat()
 		
 		if(compareBeats(measureNotes, lastMeasure)) {
 			++beatCount;
+			autoBeats.push(measureNotes);
 			console.log("Another one");
 		}
 		else {
 			beatCount = 0;
 		}
 		
-		if(beatCount > 0) {
+		if(autoBeats.length > 0) {
 			console.log("Auto beat");
-			beatCount = 0;
+			//beatCount = 0;
 			
+			for(let i = 0; i < autoBeats.length; ++i) {
+				let aBeat = autoBeats[i];
+				for(let ii = 0; ii < aBeat.length; ++ii) {
+					autoSources[i] = audioContext.createBufferSource();
+					autoSources[i].buffer = autoBuffers[aBeat[ii].idx];
+					autoSources[i].connect(audioContext.destination);
+					autoSources[i].start((audioTick / 10) + (aBeat[ii].tick / 10));
+				}
+			}
+			/*
 			let count = 0;
 			for(const b of measureNotes){
 				autoSources[count] = audioContext.createBufferSource();
@@ -411,11 +423,6 @@ function CheckBeat()
 				autoSources[count].start((audioTick / 10) + (b.tick / 10));
 				++count;
 			}
-			/*
-			autoSources[0] = audioContext.createBufferSource();
-			autoSources[0].buffer = autoBuffers[1];
-			autoSources[0].connect(audioContext.destination);
-			autoSources[0].start(audioTick / 10 + 1);
 			*/
 		}
 		
