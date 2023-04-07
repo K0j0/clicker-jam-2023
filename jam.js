@@ -158,8 +158,6 @@ function setup()
 	app.ticker.add(tick);
 	
 	//debugChangeBody();
-	
-	InitBeatCheck();
 }
 
 var audioTick;
@@ -179,7 +177,7 @@ function setupAudio()
 		++audioTick;
 		//console.log("Tick: " + audioTick);
 		CheckBeat();
-	}, 100);
+	}, TICK_LENGTH);
 
 	var url = "audio/djembe-1.wav";
 	var request = new XMLHttpRequest();
@@ -326,35 +324,29 @@ function playSound(which) {
 function Tap(_id, _tick){
 	this.idx = _id;
 	this.tick = _tick;
-	this.age = 0;
 }
 
 Tap.prototype.toString = function TapToString() {
-  return `{id:${this.idx}, tick:${this.tick}, age:${this.age}}`;
+  return `{id:${this.idx}, tick:${this.tick}}`;
 };
 
 function onTap(ctx)
 {
+	// TODO: Do this elsewhere and once
 	var sources = [source1, source2, source3, source4];
 	var buffers = [acSoundBuff1, acSoundBuff2, acSoundBuff3, acSoundBuff4];
+	
 	var idx = ctx.target.boxIndex;
-	console.log("Tap index: " + idx + " at: " + audioTick + " ( " + sampleIndex + ")");
+	console.log("Tap index: " + idx + " at: " + audioTick + " ( " + (audioTick % M_LEN_MOD) + ")");
 	sources[idx] = audioContext.createBufferSource();
     sources[idx].buffer = buffers[idx];
     sources[idx].connect(audioContext.destination);
-    sources[idx].start(audioTick/10 + 1);
-	console.log("tap. sampleIndex? " + sampleIndex);
+    //sources[idx].start(audioTick/10 + 1);
+	sources[idx].start(0);
 	++count;
 	
-	/*
-	var o = {id:idx, tick:audioTick
-	, sIndex:sampleIndex, age: 0};
-	*/
-	var o = new Tap(idx, audioTick);
-	var i = tapIndex++ % MAX_BEAT_LENGTH;
-	lastTaps[i] = o;
-	
-	samples[sampleIndex] = o;
+	var o = new Tap(idx, audioTick % M_LEN_MOD);
+	measureNotes.push(o);
 }
 
 var source1;
@@ -372,26 +364,6 @@ function tick()
 Figure out beats
 */
 
-const MAX_BEAT_LENGTH = 6;
-const SAMPLE_LENGTH = MAX_BEAT_LENGTH * 10;
-var samples = [];
-var lastTaps = [];
-var tapIndex;
-var sampleIndex;
-
-function InitBeatCheck()
-{
-	tapIndex = 0;
-	sampleIndex = 0;
-	for(let i = 0; i < MAX_BEAT_LENGTH; ++i) {
-		lastTaps.push(0);
-		
-		for(let j = 0; j < 10; ++j) {
-			samples.push(0);
-		}
-	}
-}
-
 function printArray(name, arr) {
 	var s = "";
 	for(const e of arr)
@@ -401,75 +373,47 @@ function printArray(name, arr) {
 	console.log(name + "[" + s + "]");
 }
 
+var measure = 0;
 var sampleCheckStartIndex = 0;
+var measureNotes = [];
+const TICK_LENGTH = 100; 	// milliseconds
+const MEASURE_LENGTH = 4000; // milliseconds
+const M_LEN_MOD = MEASURE_LENGTH / TICK_LENGTH;
+var lastMeasure = [];
 function CheckBeat()
 {
-	var noteFirst = [-1, -1, -1, -1];
-	var noteLast = [-1, -1, -1, -1];
+	if(audioTick % M_LEN_MOD == 0) {
+		console.log("New Measure");
+		++measure;
+		
+		if(compareBeats(measureNotes, lastMeasure)) {
+			console.log("Another one");
+		}
+		
+		lastMeasure = measureNotes;
+		measureNotes = [];
+	}
 	
-	//console.log("\n START \n");
-	var count = 0;
-	while(count < SAMPLE_LENGTH)
+	printArray("Measure", measureNotes);
+}
+
+function compareBeats(currMeasure, lastMeasure)
+{
+	if(currMeasure.length == lastMeasure.length && currMeasure.length > 0)
 	{
-		//let startIdx = sampleIndex % SAMPLE_LENGTH;
-		let indexF = (sampleIndex + count) % SAMPLE_LENGTH;
-		let indexB = (sampleIndex - (count+1)) < 0 ? SAMPLE_LENGTH + (sampleIndex - (count+1)) : (sampleIndex - (count+1));
-		
-		/*
-		Iterate from "front" forward
-		Iterate from "back" backwards
-		Store first and last values for each by id
-		*/
-		
-		//console.log(`indexF: ${indexF} | indexB: ${indexB}`);
-		var sF = samples[indexF];
-		if(0 != sF) {
-			if(noteFirst[sF.idx] == -1){
-				noteFirst[sF.idx] = sF;
+		for(let i = 0; i < currMeasure.length; ++i)
+		{
+			const currNote = currMeasure[i];
+			const lastNote = lastMeasure[i];
+			if(currNote.idx == lastNote.idx)
+			{
+				if(Math.abs(currNote.tick - lastNote.tick) <= 2)
+				{
+					console.log("Matching beats");
+					return true;
+				}
 			}
-			
-			/*
-			console.log("Found tap at " + count + " | " + indexF
-			+ " | " + s.age);
-			*/
-			if(sF.age >= SAMPLE_LENGTH) {
-				samples[indexF] = 0;
-			}
-			++sF.age;			
-		}
-		
-		var sB = samples[indexB];
-		if(0 != sB) {
-			if(noteLast[sB.idx] == -1){
-				noteLast[sB.idx] = sB;
-			}
-			
-			/*
-			console.log("Found tap at " + count + " | " + indexF
-			+ " | " + s.age);
-			*/
-		}
-		
-		/*
-		Have it so taps "age out". Keep track of index they are tapped at and in this function check diff between their tapped index and current index. When that diff is the sample length then delete the tap so it's no longer considered.
-		
-		Limited to only 1 tap per tick this way. Could setup an array of taps later.
-		*/
-		
-		++count;
-	}
-	
-	/*
-	for(let i = 0; i < SAMPLE_LENGTH; ++i) {
-		if(0 != samples[i]) {
-			console.log("Found tap at " + i);
 		}
 	}
-	*/
-	
-	++sampleIndex;
-	sampleIndex %= SAMPLE_LENGTH;
-	
-	printArray("First Beats", noteFirst);
-	printArray("Last Beats", noteLast);
+	return false;
 }

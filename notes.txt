@@ -1,4 +1,5 @@
-
+Ok, new approach. Now going to have music measures.
+-Measures are a certain length > During tick store eat tap for that measure > lastMeasure > Clear taps on new measure > Compare taps this measure to lastMeasure > If same notes, and similar times then mark that > After 3 repeats then play that sound automatically > If no input for awhile stop playing auto sounds
 
 
 
