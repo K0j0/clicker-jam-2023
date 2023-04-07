@@ -15,3 +15,6 @@ var audioLoader;
 
 const kBoxWidth = 150;
 const kBoxHeight = 150;
+
+var sources;
+const SOURCE_COUNT = 4;

@@ -139,120 +139,7 @@ function setupAudio()
 	// When audio context is created start interval to start keeping track of time
 	audioTick = 0;	
 
-	var url = "audio/djembe-1.wav";
-	var request = new XMLHttpRequest();
-	request.open('GET', url, true);
-	request.responseType = 'arraybuffer';
-
-	// Decode asynchronously
-	request.onload = function() {
-	audioContext.decodeAudioData(request.response, function(buffer) {
-		acSoundBuff1 = buffer;
-		console.log("Got Sound Buffer1 Response");
-				
-		setupAudio2();
-	}, function(){ console.log("dang"); });
-	}
-	//request.send();		
-
-		LoadSounds(SOUND_LIST, BUFFER_LIST);
-	
-	/*
-	url = "audio/djembe-2.wav";
-	request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.responseType = 'arraybuffer';
-
-    // Decode asynchronously
-    request.onload = function() {
-    audioContext.decodeAudioData(request.response, function(buffer) {
-        acSoundBuff2 = buffer;
-		console.log("Got Sound Buffer2 Response");
-    }, function(){ console.log("dang"); });
-    }
-    request.send();
-	
-	url = "audio/djembe-3.wav";
-	request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.responseType = 'arraybuffer';
-
-    // Decode asynchronously
-    request.onload = function() {
-    audioContext.decodeAudioData(request.response, function(buffer) {
-        acSoundBuff3 = buffer;
-		console.log("Got Sound Buffer3 Response");
-    }, function(){ console.log("dang"); });
-    }
-    request.send();
-	
-	url = "audio/djembe-4.wav";
-	request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.responseType = 'arraybuffer';
-
-    // Decode asynchronously
-    request.onload = function() {
-    audioContext.decodeAudioData(request.response, function(buffer) {
-        acSoundBuff4 = buffer;
-		console.log("Got Sound Buffer4 Response");
-    }, function(){ console.log("dang"); });
-    }
-    request.send();
-	*/
-}
-
-function setupAudio2()
-{
-	var url = "audio/djembe-2.wav";
-	var request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.responseType = 'arraybuffer';
-
-    // Decode asynchronously
-    request.onload = function() {
-    audioContext.decodeAudioData(request.response, function(buffer) {
-        acSoundBuff2 = buffer;
-		console.log("Got Sound Buffer2 Response");	
-		setupAudio3();
-    }, function(){ console.log("dang"); });
-    }
-    request.send();
-}
-
-function setupAudio3()
-{
-	var url = "audio/djembe-3.wav";
-	var request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.responseType = 'arraybuffer';
-
-    // Decode asynchronously
-    request.onload = function() {
-    audioContext.decodeAudioData(request.response, function(buffer) {
-        acSoundBuff3 = buffer;
-		console.log("Got Sound Buffer3 Response");
-		setupAudio4();
-    }, function(){ console.log("dang"); });
-    }
-    request.send();
-}
-
-function setupAudio4()
-{
-	var url = "audio/djembe-4.wav";
-	var request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.responseType = 'arraybuffer';
-
-    // Decode asynchronously
-    request.onload = function() {
-    audioContext.decodeAudioData(request.response, function(buffer) {
-        acSoundBuff4 = buffer;
-		console.log("Got Sound Buffer4 Response");		
-    }, function(){ console.log("dang"); });
-    }
-    request.send();
+	LoadSounds(SOUND_LIST, BUFFER_LIST);
 }
 
 function debugChangeBody()
@@ -304,13 +191,12 @@ function onTap(ctx)
 			CheckBeat();
 		}, TICK_LENGTH);
 		TweenLite.to(bar, {x:WINDOW_W, duration:(MEASURE_LENGTH/1000), repeat:-1, ease: "linear"});
-		//return;
 	}
 	// TODO: Do -this elsewhere and once
 	var sources = [source1, source2, source3, source4];
 	//var buffers = [acSoundBuff1, acSoundBuff2, acSoundBuff3, acSoundBuff4];
 	autoSources = [];
-	autoBuffers = [acSoundBuff1, acSoundBuff2, acSoundBuff3, acSoundBuff4];
+	autoBuffers = BUFFER_LIST; // Should be a copy?
 	
 	var idx = ctx.target.boxIndex;
 	console.log("Tap index: " + idx + " at: " + audioTick + " ( " + (audioTick % M_LEN_MOD) + ")");
