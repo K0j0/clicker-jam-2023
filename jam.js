@@ -330,11 +330,15 @@ Tap.prototype.toString = function TapToString() {
   return `{id:${this.idx}, tick:${this.tick}}`;
 };
 
+var autoSources;
+var autoBuffers;
 function onTap(ctx)
 {
-	// TODO: Do this elsewhere and once
+	// TODO: Do -this elsewhere and once
 	var sources = [source1, source2, source3, source4];
 	var buffers = [acSoundBuff1, acSoundBuff2, acSoundBuff3, acSoundBuff4];
+	autoSources = [source1, source2, source3, source4];
+	autoBuffers = [acSoundBuff1, acSoundBuff2, acSoundBuff3, acSoundBuff4];
 	
 	var idx = ctx.target.boxIndex;
 	console.log("Tap index: " + idx + " at: " + audioTick + " ( " + (audioTick % M_LEN_MOD) + ")");
@@ -380,6 +384,7 @@ const TICK_LENGTH = 100; 	// milliseconds
 const MEASURE_LENGTH = 4000; // milliseconds
 const M_LEN_MOD = MEASURE_LENGTH / TICK_LENGTH;
 var lastMeasure = [];
+var beatCount = 0;
 function CheckBeat()
 {
 	if(audioTick % M_LEN_MOD == 0) {
@@ -387,7 +392,31 @@ function CheckBeat()
 		++measure;
 		
 		if(compareBeats(measureNotes, lastMeasure)) {
+			++beatCount;
 			console.log("Another one");
+		}
+		else {
+			beatCount = 0;
+		}
+		
+		if(beatCount > 0) {
+			console.log("Auto beat");
+			beatCount = 0;
+			
+			let count = 0;
+			for(const b of measureNotes){
+				autoSources[count] = audioContext.createBufferSource();
+				autoSources[count].buffer = autoBuffers[b.idx];
+				autoSources[count].connect(audioContext.destination);
+				autoSources[count].start((audioTick / 10) + (b.tick / 10));
+				++count;
+			}
+			/*
+			autoSources[0] = audioContext.createBufferSource();
+			autoSources[0].buffer = autoBuffers[1];
+			autoSources[0].connect(audioContext.destination);
+			autoSources[0].start(audioTick / 10 + 1);
+			*/
 		}
 		
 		lastMeasure = measureNotes;
