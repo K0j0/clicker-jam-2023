@@ -421,19 +421,33 @@ function CheckBeat()
 		Store first and last values for each by id
 		*/
 		
-		console.log(`indexF: ${indexF} | indexB: ${indexB}`);
-		var s = samples[indexF];
-		if(0 != s) {
-			noteFirst[s.idx] = s;
+		//console.log(`indexF: ${indexF} | indexB: ${indexB}`);
+		var sF = samples[indexF];
+		if(0 != sF) {
+			if(noteFirst[sF.idx] == -1){
+				noteFirst[sF.idx] = sF;
+			}
 			
 			/*
 			console.log("Found tap at " + count + " | " + indexF
 			+ " | " + s.age);
 			*/
-			if(s.age >= SAMPLE_LENGTH) {
+			if(sF.age >= SAMPLE_LENGTH) {
 				samples[indexF] = 0;
 			}
-			++s.age;			
+			++sF.age;			
+		}
+		
+		var sB = samples[indexB];
+		if(0 != sB) {
+			if(noteLast[sB.idx] == -1){
+				noteLast[sB.idx] = sB;
+			}
+			
+			/*
+			console.log("Found tap at " + count + " | " + indexF
+			+ " | " + s.age);
+			*/
 		}
 		
 		/*
@@ -456,5 +470,6 @@ function CheckBeat()
 	++sampleIndex;
 	sampleIndex %= SAMPLE_LENGTH;
 	
-	printArray("noteFirst", noteFirst);
+	printArray("First Beats", noteFirst);
+	printArray("Last Beats", noteLast);
 }

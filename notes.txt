@@ -1,3 +1,7 @@
+
+
+
+
 -Sequence detection and looping.
 Have a function running every frame/tick > Test playing a sound at certain times > Keep track of the last 10 button pressed and when > Try to identify a pattern
 
