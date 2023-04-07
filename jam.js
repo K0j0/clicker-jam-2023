@@ -131,6 +131,12 @@ function setupAudio()
 	audioContext = new AudioContext();	
 	// When audio context is created start interval to start keeping track of time
 	audioTick = 0;	
+	trueTick = 0;
+	
+	setInterval(function(){		
+			//console.log("Tick: " + audioTick);
+			++trueTick;
+		}, TICK_LENGTH);
 
 	LoadSounds(SOUND_LIST, BUFFER_LIST);
 }
@@ -242,15 +248,15 @@ function CheckBeat()
 			
 			for(let i = 0; i < autoBeats.length; ++i) {
 				let aBeat = autoBeats[i];
-				printArray(`A Beat[${i}]`, measureNotes);
+				printArray(`A Beat[${i}]`, aBeat);
 				for(let ii = 0; ii < aBeat.length; ++ii) {
+					let aTap = aBeat[ii];
 					autoSources[i] = audioContext.createBufferSource();
-					autoSources[i].buffer = autoBuffers[aBeat[ii].idx];
+					autoSources[i].buffer = autoBuffers[aTap.idx];
 					autoSources[i].connect(audioContext.destination);
-					var aTime = (audioTick / 10) + (aBeat[ii].tickTrue / 10);
+					let aTime = (trueTick/10) + (aTap.tick/10);
 					autoSources[i].start(aTime);
-					var dTime = (aBeat[ii].tickTrue);
-					console.log(`Play ${aBeat[ii].idx} at ${dTime} | ${audioTick % M_LEN_MOD}`);
+					console.log(`Play ${aBeat[ii].idx} at ${aTime}`);
 				}
 			}
 		}
@@ -261,17 +267,17 @@ function CheckBeat()
 		measureNotes = [];
 	}
 	
-	console.log("Tick: " + GET_TICKS());
+	console.log(`Tick: ${GET_TICKS()} | audioTick: ${audioTick/10}s | trueTick: ${trueTick/10}s`);
 	printArray("Measure", measureNotes);
 	if(hasTapped) {
 		++audioTick;
 	}
-		
+	//++trueTick;	
 }
 
 function compareBeats(currMeasure, lastMeasure)
 {
-	if(currMeasure.length == lastMeasure.length && currMeasure.length > 0)
+	if(currMeasure.length == lastMeasure.length && currMeasure.length >= 0)
 	{
 		for(let i = 0; i < currMeasure.length; ++i)
 		{
