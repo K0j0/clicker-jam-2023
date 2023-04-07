@@ -44,7 +44,7 @@ function setup()
 	
 	makeBoxes();
 	
-	sprite = PIXI.Sprite.from('batman.png');
+	sprite = PIXI.Sprite.from('imgs/batman.png');
 	//sprite.interactive = true;
 	sprite.eventMode = 'static';
 	sprite.cursor = 'pointer';
