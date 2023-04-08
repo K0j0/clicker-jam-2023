@@ -158,6 +158,7 @@ function Tap(_id, _tick){
 	this.idx = _id;
 	this.tick = _tick % M_LEN_MOD;
 	this.tickTrue = _tick;
+	this.time = audioContext.currentTime - frameStartTime;
 }
 
 Tap.prototype.toString = function TapToString() {
@@ -230,6 +231,7 @@ var hasTapped = false;
 function CheckBeat()
 {
 	if(audioTick % M_LEN_MOD == 0 && audioTick > 0) {
+		frameStartTime = audioContext.currentTime;
 		console.log("New Measure");
 		++measure;
 		
@@ -254,7 +256,8 @@ function CheckBeat()
 					autoSources[i] = audioContext.createBufferSource();
 					autoSources[i].buffer = autoBuffers[aTap.idx];
 					autoSources[i].connect(audioContext.destination);
-					let aTime = (trueTick/10) + (aTap.tick/10);
+					//let aTime = (audioContext.currentTime + (aTap.tick/10));
+					let aTime = (frameStartTime + aTap.time);
 					autoSources[i].start(aTime);
 					console.log(`Play ${aBeat[ii].idx} at ${aTime}`);
 				}

@@ -22,3 +22,5 @@ const SOURCE_COUNT = 4;
 
 var audioTick;
 var trueTick;
+
+var frameStartTime;
