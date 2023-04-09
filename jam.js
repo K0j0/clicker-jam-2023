@@ -35,7 +35,7 @@ function setup()
 	uiText = new PIXI.Text('Shelter: 0');
 	uiText.x = 50;
 	uiText.y = 10;
-	app.stage.addChild(uiText);
+	//app.stage.addChild(uiText);
 	
 	debugText = new PIXI.Text('DEBUG');
 	debugText.x = 500;
@@ -44,16 +44,17 @@ function setup()
 	
 	makeBoxes();
 	
-	sprite = PIXI.Sprite.from('imgs/batman.png');
-	//sprite.interactive = true;
-	sprite.eventMode = 'static';
-	sprite.cursor = 'pointer';
-	sprite.on('pointerdown', setupAudio );
-	sprite.anchor.x = .5;
-	sprite.anchor.y = .5;
-	sprite.x = WINDOW_W/2;
-	sprite.y = WINDOW_H/2;
-	stage.addChild(sprite);
+	startButton = new PIXI.Graphics();
+	startButton.beginFill(0x000000);
+	startButton.drawCircle(0, 0, 150);
+	startButton.eventMode = 'static';
+	startButton.cursor = 'pointer';
+	startButton.on('pointerdown', setupAudio );
+	//startButton.anchor.x = .5;
+	//startButton.anchor.y = .5;
+	startButton.x = WINDOW_W/2;
+	startButton.y = WINDOW_H/2;
+	stage.addChild(startButton);
 	
 	app.ticker.add(tick);
 }
@@ -90,6 +91,7 @@ function makeBoxes()
 	box1a.drawRect(-kBoxWidth/2, -kBoxHeight/2, kBoxWidth, kBoxHeight);
 	box1a.endFill();
 	box1a.rotation = Math.PI/4;
+	box1a.tint = 0xbadfad;
 	
 	box2.beginFill(0xFFFF00);
 	box2a.beginFill(0xFFFF00);
@@ -99,6 +101,7 @@ function makeBoxes()
 	box2a.endFill();
 	box2.rotation = Math.PI/4;
 	box2a.rotation = Math.PI/4;
+	box2a.tint = 0xbadfad;
 	
 	box3.beginFill(0x00FF00);
 	box3a.beginFill(0x00FF00);
@@ -108,6 +111,7 @@ function makeBoxes()
 	box3a.endFill();
 	box3.rotation = Math.PI/4;
 	box3a.rotation = Math.PI/4;
+	box3a.tint = 0xbadfad;
 	
 	box4.beginFill(0x0000FF);
 	box4a.beginFill(0x0000FF);
@@ -117,35 +121,36 @@ function makeBoxes()
 	box4a.endFill();
 	box4.rotation = Math.PI/4;
 	box4a.rotation = Math.PI/4;
+	box4a.tint = 0xbadfad;
 	
-	const gap = 50;
+	const gap = 80;
 	box1.x = WINDOW_W/4 - gap;
 	box1a.x = WINDOW_W/4 + gap;
 	box1.y = WINDOW_H/4;
 	box1a.y = WINDOW_H/4;
-	box1a.scale.x = .9;
-	box1a.scale.y = .9;
+	box1a.scale.x = .7;
+	box1a.scale.y = .7;
 	
-	box2.x = 3*WINDOW_W/4 - gap;
-	box2a.x = 3*WINDOW_W/4 + gap;
+	box2.x = 3*WINDOW_W/4 + gap;
+	box2a.x = 3*WINDOW_W/4 - gap;
 	box2.y = WINDOW_H/4;
 	box2a.y = WINDOW_H/4;
-	box2a.scale.x = .9;
-	box2a.scale.y = .9;
+	box2a.scale.x = .7;
+	box2a.scale.y = .7;
 	
-	box3.x = WINDOW_W/4 + gap;
-	box3a.x = WINDOW_W/4 - gap;
+	box3.x = WINDOW_W/4 - gap;
+	box3a.x = WINDOW_W/4 + gap;
 	box3.y = WINDOW_H/2;
 	box3a.y = WINDOW_H/2;
-	box3a.scale.x = .9;
-	box3a.scale.y = .9;
+	box3a.scale.x = .7;
+	box3a.scale.y = .7;
 	
-	box4.x = 3*WINDOW_W/4 - gap;
-	box4a.x = 3*WINDOW_W/4 + gap;
+	box4.x = 3*WINDOW_W/4 + gap;
+	box4a.x = 3*WINDOW_W/4 - gap;
 	box4.y = WINDOW_H/2;
 	box4a.y = WINDOW_H/2;
-	box4a.scale.x = .9;
-	box4a.scale.y = .9;
+	box4a.scale.x = .7;
+	box4a.scale.y = .7;
 	
 	box1.eventMode = 'static';
 	box1a.eventMode = 'static';
@@ -175,14 +180,23 @@ function makeBoxes()
 	bar.drawRect(0, 0, 10, WINDOW_H);
 	app.stage.addChild(bar);
 	
-	app.stage.addChild(box1);
 	app.stage.addChild(box1a);
-	app.stage.addChild(box2);
+	app.stage.addChild(box1);
 	app.stage.addChild(box2a);
-	app.stage.addChild(box3);
+	app.stage.addChild(box2);
 	app.stage.addChild(box3a);
-	app.stage.addChild(box4);
+	app.stage.addChild(box3);
 	app.stage.addChild(box4a);
+	app.stage.addChild(box4);
+	
+	box1.alpha = 0;
+	box1a.alpha = 0;
+	box2.alpha = 0;
+	box2a.alpha = 0;
+	box3.alpha = 0;
+	box3a.alpha = 0;
+	box4.alpha = 0;
+	box4a.alpha = 0;
 }
 
 const SOUND_LIST = ["audio/djembe-1.wav"
@@ -193,7 +207,8 @@ var BUFFER_LIST = [{},{},{},{}];
 
 function setupAudio()
 {
-	stage.removeChild(sprite);
+	ButtonFade();
+	startButton.evenMode
 	audioContext = new AudioContext();	
 	// When audio context is created start interval to start keeping track of time
 	audioTick = 0;	
@@ -205,6 +220,14 @@ function setupAudio()
 		}, TICK_LENGTH);
 
 	LoadSounds(SOUND_LIST, BUFFER_LIST);
+}
+
+function ButtonFade()
+{
+	var tm = new TimelineMax({paused:true});
+	tm.to(startButton, {alpha:0, duration:1, onComplete:function(){stage.removeChild(startButton);;}});
+	tm.to([box1,box1a,box2,box2a,box3,box3a,box4,box4a], {alpha:1, duration:1});
+	tm.play();
 }
 
 function debugChangeBody()

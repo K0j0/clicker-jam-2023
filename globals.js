@@ -9,6 +9,7 @@ var uiText;
 var debugText;
 var count = 0;
 var box1, box2, box3, box4;
+var startButton;
 
 var audioContext;
 var audioLoader;

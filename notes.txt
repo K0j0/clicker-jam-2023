@@ -1,4 +1,5 @@
 New sequence tracking...
+Tracking sequence flag > Sets true on tap > Sets false on a certain kind of tap > OnTap: store notes and delta time from previous note in sequence. On last note of sequence: Compare with previous sequence > If close enough to match > Start loop interval > Schedule sound to play ahead starting at interval from last note of previous sequence to first note of current one. Interval should be like half that time. > At interval repeat the note (this is if doing setTimeout, with setInterval this wouldn't be necessary.
 
 Have way to export, save beats. Load beats?
 Add optional metronome tick and BPM slider
