@@ -227,8 +227,8 @@ function setupAudio()
 function ButtonFade()
 {
 	var tm = new TimelineMax({paused:true});
-	tm.to(startButton, {alpha:0, duration:1, onComplete:function(){stage.removeChild(startButton);;}});
-	tm.to([box1,box1a,box2,box2a,box3,box3a,box4,box4a], {alpha:1, duration:1});
+	tm.to(startButton, {alpha:0, duration:.25, onComplete:function(){stage.removeChild(startButton);;}});
+	tm.to([box1,box1a,box2,box2a,box3,box3a,box4,box4a], {alpha:1, duration:.25});
 	tm.play();
 }
 
@@ -328,7 +328,18 @@ function onTap(ctx)
 			++beatCount;
 			autoBeats.push(measureNotes);
 			console.log("Another one");
-			PlayAutoBeats(audioContext.currentTime);
+			
+			let space = measureNotes[0].trueTime - lastMeasure[lastMeasure.length-1].trueTime;
+			let duration = measureNotes[measureNotes.length-1].trueTime - measureNotes[0].trueTime;
+			
+			//PlayAutoBeats(audioContext.currentTime+space);
+			setTimeout(function(){
+				PlayAutoBeats(audioContext.currentTime);
+				setInterval(function() {
+									console.log("Hi2");
+									PlayAutoBeats(audioContext.currentTime);
+							}, (duration+space)*1000);
+			}, (space)*1000);
 		}
 		else {
 			beatCount = 0;
