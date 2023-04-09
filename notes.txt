@@ -1,3 +1,11 @@
+New sequence tracking...
+
+Have way to export, save beats. Load beats?
+Add optional metronome tick and BPM slider
+Eventually add audio filters and stuff
+2 buttons on beat. One starts/continues and the other confirms/ends.
+New button could appear when a Sequence is detected. Pressing could start the sequence.
+
 Ok, new approach. Now going to have music measures.
 -Measures are a certain length > During tick store eat tap for that measure > lastMeasure > Clear taps on new measure > Compare taps this measure to lastMeasure > If same notes, and similar times then mark that > After 3 repeats then play that sound automatically > If no input for awhile stop playing auto sounds
 

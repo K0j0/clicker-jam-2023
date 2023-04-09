@@ -61,52 +61,114 @@ function setup()
 function makeBoxes()
 {
 	box1 = new PIXI.Graphics();
+	box1a = new PIXI.Graphics();
 	box1.boxIndex = 0;
+	box1a.boxIndex = 10;
+	
 	box2 = new PIXI.Graphics();
+	box2a = new PIXI.Graphics();
 	box2.boxIndex = 1;
+	box2a.boxIndex = 11;
+	
 	box3 = new PIXI.Graphics();
+	box3a = new PIXI.Graphics();
 	box3.boxIndex = 2;
+	box3a.boxIndex = 12;
+	
 	box4 = new PIXI.Graphics();
+	box4a = new PIXI.Graphics();
 	box4.boxIndex = 3;
+	box4a.boxIndex = 13;
 
 	
 	// Rectangle
 	box1.beginFill(0xFF0000);
 	box1.drawRect(-kBoxWidth/2, -kBoxHeight/2, kBoxWidth, kBoxHeight);
 	box1.endFill();
+	box1.rotation = Math.PI/4;
+	box1a.beginFill(0xFF0000);
+	box1a.drawRect(-kBoxWidth/2, -kBoxHeight/2, kBoxWidth, kBoxHeight);
+	box1a.endFill();
+	box1a.rotation = Math.PI/4;
 	
 	box2.beginFill(0xFFFF00);
+	box2a.beginFill(0xFFFF00);
 	box2.drawRect(-kBoxWidth/2, -kBoxHeight/2, kBoxWidth, kBoxHeight);
+	box2a.drawRect(-kBoxWidth/2, -kBoxHeight/2, kBoxWidth, kBoxHeight);
 	box2.endFill();
+	box2a.endFill();
+	box2.rotation = Math.PI/4;
+	box2a.rotation = Math.PI/4;
 	
 	box3.beginFill(0x00FF00);
+	box3a.beginFill(0x00FF00);
 	box3.drawRect(-kBoxWidth/2, -kBoxHeight/2, kBoxWidth, kBoxHeight);
+	box3a.drawRect(-kBoxWidth/2, -kBoxHeight/2, kBoxWidth, kBoxHeight);
 	box3.endFill();
+	box3a.endFill();
+	box3.rotation = Math.PI/4;
+	box3a.rotation = Math.PI/4;
 	
 	box4.beginFill(0x0000FF);
+	box4a.beginFill(0x0000FF);
 	box4.drawRect(-kBoxWidth/2, -kBoxHeight/2, kBoxWidth, kBoxHeight);
+	box4a.drawRect(-kBoxWidth/2, -kBoxHeight/2, kBoxWidth, kBoxHeight);
 	box4.endFill();
+	box4a.endFill();
+	box4.rotation = Math.PI/4;
+	box4a.rotation = Math.PI/4;
 	
-	box1.x = WINDOW_W/4;
+	const gap = 50;
+	box1.x = WINDOW_W/4 - gap;
+	box1a.x = WINDOW_W/4 + gap;
 	box1.y = WINDOW_H/4;
-	box2.x = 3*WINDOW_W/4;
+	box1a.y = WINDOW_H/4;
+	box1a.scale.x = .9;
+	box1a.scale.y = .9;
+	
+	box2.x = 3*WINDOW_W/4 - gap;
+	box2a.x = 3*WINDOW_W/4 + gap;
 	box2.y = WINDOW_H/4;
-	box3.x = WINDOW_W/4;
+	box2a.y = WINDOW_H/4;
+	box2a.scale.x = .9;
+	box2a.scale.y = .9;
+	
+	box3.x = WINDOW_W/4 + gap;
+	box3a.x = WINDOW_W/4 - gap;
 	box3.y = WINDOW_H/2;
-	box4.x = 3*WINDOW_W/4;
+	box3a.y = WINDOW_H/2;
+	box3a.scale.x = .9;
+	box3a.scale.y = .9;
+	
+	box4.x = 3*WINDOW_W/4 - gap;
+	box4a.x = 3*WINDOW_W/4 + gap;
 	box4.y = WINDOW_H/2;
+	box4a.y = WINDOW_H/2;
+	box4a.scale.x = .9;
+	box4a.scale.y = .9;
 	
 	box1.eventMode = 'static';
+	box1a.eventMode = 'static';
 	box1.on('pointerdown', onTap, box1 );
+	box1a.on('pointerdown', onTap, box1a );
 	box1.cursor = 'pointer';
+	box1a.cursor = 'pointer';
 	box2.eventMode = 'static';
+	box2a.eventMode = 'static';
 	box2.on('pointerdown', onTap, box2 );
+	box2a.on('pointerdown', onTap, box2a );
 	box3.cursor = 'pointer';
+	box3a.cursor = 'pointer';
 	box3.eventMode = 'static';
+	box3a.eventMode = 'static';
 	box3.on('pointerdown', onTap, box3 );
+	box3a.on('pointerdown', onTap, box3a );
 	box4.cursor = 'pointer';
+	box4a.cursor = 'pointer';
 	box4.eventMode = 'static';
+	box4a.eventMode = 'static';
 	box4.on('pointerdown', onTap, box4 );
+	box4a.on('pointerdown', onTap, box4a );
 	
 	bar = new PIXI.Graphics();
 	bar.beginFill(0xFFFFFF);
@@ -114,9 +176,13 @@ function makeBoxes()
 	app.stage.addChild(bar);
 	
 	app.stage.addChild(box1);
+	app.stage.addChild(box1a);
 	app.stage.addChild(box2);
+	app.stage.addChild(box2a);
 	app.stage.addChild(box3);
+	app.stage.addChild(box3a);
 	app.stage.addChild(box4);
+	app.stage.addChild(box4a);
 }
 
 const SOUND_LIST = ["audio/djembe-1.wav"
@@ -182,8 +248,8 @@ function onTap(ctx)
 	}
 	autoSources = [];
 	autoBuffers = [...BUFFER_LIST]; // Should be a copy?
-	
-	var idx = ctx.target.boxIndex;
+	let isEndTap = ctx.target.boxIndex >= 10;
+	var idx = ctx.target.boxIndex = isEndTap ? ctx.target.boxIndex - 10: ctx.target.boxIndex;
 	playSound(idx, 0);
 	console.log("Tap index: " + idx + " at: " + audioTick + " ( " + (audioTick % M_LEN_MOD) + ")");
 	++count;
@@ -222,7 +288,7 @@ var sampleCheckStartIndex = 0;
 var measureNotes = [];
 var autoBeats = [];
 const TICK_LENGTH = 100; 	// milliseconds
-const BPM = 15;
+const BPM = 60;
 const MEASURE_LENGTH =  (1 / (BPM / 60) * 1000); // milliseconds
 const M_LEN_MOD = MEASURE_LENGTH / TICK_LENGTH;
 var lastMeasure = [];
