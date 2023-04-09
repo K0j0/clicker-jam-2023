@@ -25,3 +25,4 @@ var audioTick;
 var trueTick;
 
 var frameStartTime;
+var sequenceStarted = false;

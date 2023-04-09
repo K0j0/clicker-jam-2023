@@ -218,6 +218,8 @@ function setupAudio()
 			//console.log("Tick: " + audioTick);
 			++trueTick;
 		}, TICK_LENGTH);
+		
+	autoSources = [];	
 
 	LoadSounds(SOUND_LIST, BUFFER_LIST);
 }
@@ -244,17 +246,41 @@ function playSound(which, when) {
 }
 
 function Tap(_id, _tick){
-	this.idx = _id;
+	this.idx = _id >= 10 ? _id - 10 : _id;
+	this.trueIdx = _id;
 	this.tick = _tick % M_LEN_MOD;
 	this.tickTrue = _tick;
 	this.time = audioContext.currentTime - frameStartTime;
+	this.trueTime = audioContext.currentTime;
+	this.isEndTap = _id >= 10;
 }
 
 Tap.prototype.toString = function TapToString() {
-  return `{id:${this.idx}, tick:${this.tick}}`;
+  return `{id:${this.idx}|${this.trueIdx}, TIME:${String(this.time).substring(0,4)}, *true-time*:${String(this.trueTime).substring(0,4)}, end? ${this.isEndTap}`;
 };
 
-
+function PlayAutoBeats(when)
+{
+	if(autoBeats.length > 0) {
+		console.log("Auto beat");
+		//beatCount = 0;
+		
+		for(let i = 0; i < autoBeats.length; ++i) {
+			let aBeat = autoBeats[i];
+			printArray(`A Beat[${i}]`, aBeat);
+			for(let ii = 0; ii < aBeat.length; ++ii) {
+				let aTap = aBeat[ii];
+				autoSources[i] = audioContext.createBufferSource();
+				autoSources[i].buffer = autoBuffers[aTap.idx];
+				autoSources[i].connect(audioContext.destination);
+				//let aTime = (audioContext.currentTime + (aTap.tick/10));
+				let aTime = (when + aTap.time);
+				autoSources[i].start(aTime);
+				console.log(`Play ${aBeat[ii].idx} at ${aTime}`);
+			}
+		}
+	}
+}
 
 var autoSources;
 var autoBuffers;
@@ -263,27 +289,65 @@ function onTap(ctx)
 {
 	if(once)
 	{		
+		/*
 		setInterval(function(){		
 			//console.log("Tick: " + audioTick);
 			CheckBeat();
 		}, TICK_LENGTH);
+		*/
+		autoBuffers = [...BUFFER_LIST]; // Should be a copy?
 		TweenLite.to(bar, {x:WINDOW_W, duration:(MEASURE_LENGTH/1000), repeat:-1, ease: "linear"});
 	}
-	autoSources = [];
-	autoBuffers = [...BUFFER_LIST]; // Should be a copy?
-	let isEndTap = ctx.target.boxIndex >= 10;
-	var idx = ctx.target.boxIndex = isEndTap ? ctx.target.boxIndex - 10: ctx.target.boxIndex;
-	playSound(idx, 0);
-	console.log("Tap index: " + idx + " at: " + audioTick + " ( " + (audioTick % M_LEN_MOD) + ")");
-	++count;
 	
-	var o = new Tap(idx, audioTick);
+	/*
+	Check for sequence started
+		if so
+			Compare curr measure array to last measure array
+			If match, schedule loop
+		if not
+			Clear out curr meausre array
+			Add in next note
+	*/
+	
+	if(!sequenceStarted) {
+		frameStartTime = audioContext.currentTime;
+		measureNotes = [];
+		//lastMeasure = [];
+		sequenceStarted = true;
+	}
+	
+	var o = new Tap(ctx.target.boxIndex, audioTick);
+	
 	measureNotes.push(o);
+	
+	if(o.isEndTap){
+		sequenceStarted = false;
+		console.log("End Tap");
+		
+		if(compareBeats(measureNotes, lastMeasure)) {
+			++beatCount;
+			autoBeats.push(measureNotes);
+			console.log("Another one");
+			PlayAutoBeats(audioContext.currentTime);
+		}
+		else {
+			beatCount = 0;
+		}
+		
+		printArray("Curr Notes ", measureNotes);
+		printArray("Last notes ", lastMeasure);
+		lastMeasure = measureNotes;
+	}
+	
+	playSound(o.idx, 0);
+	
+	console.log("Tapped " + o);
+	
 	
 	if(once) {
 		once = false;
 		hasTapped = true;
-		CheckBeat();
+		//CheckBeat();
 	}
 }
 
@@ -369,7 +433,7 @@ function CheckBeat()
 
 function compareBeats(currMeasure, lastMeasure)
 {
-	if(currMeasure.length == lastMeasure.length && currMeasure.length >= 0)
+	if(currMeasure.length == lastMeasure.length && lastMeasure.length > 1)
 	{
 		for(let i = 0; i < currMeasure.length; ++i)
 		{
@@ -377,13 +441,22 @@ function compareBeats(currMeasure, lastMeasure)
 			const lastNote = lastMeasure[i];
 			if(currNote.idx == lastNote.idx)
 			{
-				if(Math.abs(currNote.tick - lastNote.tick) <= 2)
+				if(Math.abs(currNote.time - lastNote.time) > .2)
 				{
-					console.log("Matching beats");
-					return true;
+					console.log("Got Here 1");
+					return false;
+				}
+				else
+				{
+					console.log("Matches: " + currNote);
 				}
 			}
 		}
+					console.log("Got Here 2");
+		console.log("Matching-ish beats");
+		return true;
 	}
+	
+					console.log("Got Here 3");
 	return false;
 }
