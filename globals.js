@@ -26,3 +26,4 @@ var trueTick;
 
 var frameStartTime;
 var sequenceStarted = false;
+var autoBeatIndex = 0;

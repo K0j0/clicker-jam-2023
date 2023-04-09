@@ -259,13 +259,14 @@ Tap.prototype.toString = function TapToString() {
   return `{id:${this.idx}|${this.trueIdx}, TIME:${String(this.time).substring(0,4)}, *true-time*:${String(this.trueTime).substring(0,4)}, end? ${this.isEndTap}`;
 };
 
-function PlayAutoBeats(when)
+function PlayAutoBeats(i, when)
 {
 	if(autoBeats.length > 0) {
 		console.log("Auto beat");
 		//beatCount = 0;
 		
-		for(let i = 0; i < autoBeats.length; ++i) {
+		//for(let i = 0; i < autoBeats.length; ++i)
+		{
 			let aBeat = autoBeats[i];
 			printArray(`A Beat[${i}]`, aBeat);
 			for(let ii = 0; ii < aBeat.length; ++ii) {
@@ -326,20 +327,24 @@ function onTap(ctx)
 		
 		if(compareBeats(measureNotes, lastMeasure)) {
 			++beatCount;
-			autoBeats.push(measureNotes);
+			autoBeats[autoBeatIndex] = measureNotes;
 			console.log("Another one");
 			
 			let space = measureNotes[0].trueTime - lastMeasure[lastMeasure.length-1].trueTime;
 			let duration = measureNotes[measureNotes.length-1].trueTime - measureNotes[0].trueTime;
 			
 			//PlayAutoBeats(audioContext.currentTime+space);
-			setTimeout(function(){
-				PlayAutoBeats(audioContext.currentTime);
-				setInterval(function() {
-									console.log("Hi2");
-									PlayAutoBeats(audioContext.currentTime);
-							}, (duration+space)*1000);
-			}, (space)*1000);
+			var myI = autoBeatIndex;
+			(function(){
+				setTimeout(function(){
+					PlayAutoBeats(myI, audioContext.currentTime);
+					setInterval(function() {
+										console.log("Hi2");
+										PlayAutoBeats(myI, audioContext.currentTime);
+								}, (duration+space)*1000);
+				}, (space)*1000);
+				++autoBeatIndex;
+			})();
 		}
 		else {
 			beatCount = 0;
