@@ -212,6 +212,11 @@ function setupAudio()
 	LoadSounds(SOUND_LIST, BUFFER_LIST);
 }
 
+function SOUND_NOW()
+{
+	return audioContext.currentTime;
+};
+
 function ButtonFade()
 {
 	var tm = new TimelineMax({paused:true});
@@ -254,10 +259,12 @@ function Sequence(_notes, _space) {
 	this.duration = _notes[_notes.length-1].trueTime - _notes[0].trueTime;
 	this.nextPlay = 0;
 	this.lastPlay = 0;
+	this.scheduled = false;
 
 	this.Play = function Play(when)
 	{
-		this.nextPlay = 0;
+		this.nextPlay = when;
+		this.scheduled = true;
 		console.log("Auto beat");
 		printArray("A Beat", this.notes);
 		for(let i = 0; i < this.notes.length; ++i) {
@@ -320,12 +327,10 @@ function onTap(ctx)
 		
 		if(compareBeats(measureNotes, lastMeasure)) {
 			++beatCount;
-			autoBeats[autoBeatIndex] = measureNotes;
 			console.log("Another one");
-			
 			let space = measureNotes[0].trueTime - lastMeasure[lastMeasure.length-1].trueTime;
-			
 			var seq = new Sequence(measureNotes, space);
+			SEQS.push(seq);
 			seq.Play(audioContext.currentTime+space);
 		}
 		else {
@@ -352,6 +357,13 @@ function onTap(ctx)
 function tick()
 {
 	//console.log("tick");
+	//const THRESH
+	for(s of SEQS) {
+		if(SOUND_NOW() > s.lastPlay && SOUND_NOW() > s.nextPlay){
+			let nextTime = s.lastPlay + s.space;
+			s.Play(nextTime);
+		}
+	}
 }
 
 function printArray(name, arr) {
