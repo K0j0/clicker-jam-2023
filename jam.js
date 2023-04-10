@@ -56,7 +56,26 @@ function setup()
 	startButton.y = WINDOW_H/2;
 	stage.addChild(startButton);
 	
+	window.addEventListener("keydown", OnKeyDown);
+	
 	app.ticker.add(tick);
+}
+
+function OnKeyDown(e)
+{
+	console.log("pressed " + e.keyCode);
+	switch(e.keyCode)
+	{
+		case 49: onTap({target:box1}); break;
+		case 50: onTap({target:box2}); break;
+		case 51: onTap({target:box3}); break;
+		case 52: onTap({target:box4}); break;
+		
+		case 54: onTap({target:box1a}); break;
+		case 55: onTap({target:box2a}); break;
+		case 56: onTap({target:box3a}); break;
+		case 57: onTap({target:box4a}); break;
+	}
 }
 
 function makeBoxes()
@@ -178,7 +197,7 @@ function makeBoxes()
 	bar = new PIXI.Graphics();
 	bar.beginFill(0xFFFFFF);
 	bar.drawRect(0, 0, 10, WINDOW_H);
-	app.stage.addChild(bar);
+	//app.stage.addChild(bar);
 	
 	app.stage.addChild(box1a);
 	app.stage.addChild(box1);
@@ -238,7 +257,7 @@ function playSound(which, when) {
 	sound.start(when);
 }
 
-function Tap(_id, _tick){
+function Tap(_id){
 	this.idx = _id >= 10 ? _id - 10 : _id;
 	this.trueIdx = _id;
 	this.time = audioContext.currentTime - frameStartTime;
@@ -297,7 +316,7 @@ function onTap(ctx)
 		}, TICK_LENGTH);
 		*/
 		autoBuffers = [...BUFFER_LIST]; // Should be a copy?
-		TweenLite.to(bar, {x:WINDOW_W, duration:(MEASURE_LENGTH/1000), repeat:-1, ease: "linear"});
+		//TweenLite.to(bar, {x:WINDOW_W, duration:(MEASURE_LENGTH/1000), repeat:-1, ease: "linear"});
 	}
 	
 	/*
@@ -316,8 +335,8 @@ function onTap(ctx)
 		//lastMeasure = [];
 		sequenceStarted = true;
 	}
-	
-	var o = new Tap(ctx.target.boxIndex, audioTick);
+		
+	var o = new Tap(ctx.target.boxIndex);
 	
 	measureNotes.push(o);
 	
