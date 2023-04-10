@@ -208,19 +208,7 @@ var BUFFER_LIST = [{},{},{},{}];
 function setupAudio()
 {
 	ButtonFade();
-	startButton.evenMode
 	audioContext = new AudioContext();	
-	// When audio context is created start interval to start keeping track of time
-	audioTick = 0;	
-	trueTick = 0;
-	
-	setInterval(function(){		
-			//console.log("Tick: " + audioTick);
-			++trueTick;
-		}, TICK_LENGTH);
-		
-	autoSources = [];	
-
 	LoadSounds(SOUND_LIST, BUFFER_LIST);
 }
 
@@ -248,8 +236,6 @@ function playSound(which, when) {
 function Tap(_id, _tick){
 	this.idx = _id >= 10 ? _id - 10 : _id;
 	this.trueIdx = _id;
-	this.tick = _tick % M_LEN_MOD;
-	this.tickTrue = _tick;
 	this.time = audioContext.currentTime - frameStartTime;
 	this.trueTime = audioContext.currentTime;
 	this.isEndTap = _id >= 10;
@@ -259,31 +245,38 @@ Tap.prototype.toString = function TapToString() {
   return `{id:${this.idx}|${this.trueIdx}, TIME:${String(this.time).substring(0,4)}, *true-time*:${String(this.trueTime).substring(0,4)}, end? ${this.isEndTap}`;
 };
 
-function PlayAutoBeats(i, when)
-{
-	if(autoBeats.length > 0) {
+function Sequence(_notes, _space) {
+	this.notes = _notes;
+	this.sources = [];
+	this.length = _notes.length;
+	this.lastIndex = _notes.length-1;
+	this.space = _space;
+	this.duration = _notes[_notes.length-1].trueTime - _notes[0].trueTime;
+	this.nextPlay = 0;
+	this.lastPlay = 0;
+
+	this.Play = function Play(when)
+	{
+		this.nextPlay = 0;
 		console.log("Auto beat");
-		//beatCount = 0;
-		
-		//for(let i = 0; i < autoBeats.length; ++i)
-		{
-			let aBeat = autoBeats[i];
-			printArray(`A Beat[${i}]`, aBeat);
-			for(let ii = 0; ii < aBeat.length; ++ii) {
-				let aTap = aBeat[ii];
-				autoSources[i] = audioContext.createBufferSource();
-				autoSources[i].buffer = autoBuffers[aTap.idx];
-				autoSources[i].connect(audioContext.destination);
-				//let aTime = (audioContext.currentTime + (aTap.tick/10));
-				let aTime = (when + aTap.time);
-				autoSources[i].start(aTime);
-				console.log(`Play ${aBeat[ii].idx} at ${aTime}`);
+		printArray("A Beat", this.notes);
+		for(let i = 0; i < this.notes.length; ++i) {
+			let aTap = this.notes[i];
+			this.sources[i] = audioContext.createBufferSource();
+			this.sources[i].buffer = autoBuffers[aTap.idx];
+			this.sources[i].connect(audioContext.destination);
+			let aTime = (when + aTap.time);
+			this.sources[i].start(aTime);
+			if(i == this.lastIndex) {
+				this.lastPlay = aTime;
 			}
+			console.log(`Play ${this.notes[i].idx} at ${aTime}`);
 		}
 	}
 }
 
-var autoSources;
+
+
 var autoBuffers;
 var once = true;
 function onTap(ctx)
@@ -331,20 +324,9 @@ function onTap(ctx)
 			console.log("Another one");
 			
 			let space = measureNotes[0].trueTime - lastMeasure[lastMeasure.length-1].trueTime;
-			let duration = measureNotes[measureNotes.length-1].trueTime - measureNotes[0].trueTime;
 			
-			//PlayAutoBeats(audioContext.currentTime+space);
-			var myI = autoBeatIndex;
-			(function(){
-				setTimeout(function(){
-					PlayAutoBeats(myI, audioContext.currentTime);
-					setInterval(function() {
-										console.log("Hi2");
-										PlayAutoBeats(myI, audioContext.currentTime);
-								}, (duration+space)*1000);
-				}, (space)*1000);
-				++autoBeatIndex;
-			})();
+			var seq = new Sequence(measureNotes, space);
+			seq.Play(audioContext.currentTime+space);
 		}
 		else {
 			beatCount = 0;
@@ -369,7 +351,7 @@ function onTap(ctx)
 
 function tick()
 {
-	SetUIText("Shelter: " + count);
+	//console.log("tick");
 }
 
 function printArray(name, arr) {
@@ -381,71 +363,15 @@ function printArray(name, arr) {
 	console.log(name + "[" + s + "]");
 }
 
-function GET_TICKS()
-{
-	return audioTick % M_LEN_MOD;
-}
-
 var measure = 0;
 var sampleCheckStartIndex = 0;
 var measureNotes = [];
 var autoBeats = [];
-const TICK_LENGTH = 100; 	// milliseconds
 const BPM = 60;
 const MEASURE_LENGTH =  (1 / (BPM / 60) * 1000); // milliseconds
-const M_LEN_MOD = MEASURE_LENGTH / TICK_LENGTH;
 var lastMeasure = [];
 var beatCount = 0;
 var hasTapped = false;
-function CheckBeat()
-{
-	if(audioTick % M_LEN_MOD == 0 && audioTick > 0) {
-		frameStartTime = audioContext.currentTime;
-		console.log("New Measure");
-		++measure;
-		
-		if(compareBeats(measureNotes, lastMeasure)) {
-			++beatCount;
-			autoBeats.push(measureNotes);
-			console.log("Another one");
-		}
-		else {
-			beatCount = 0;
-		}
-		
-		if(autoBeats.length > 0) {
-			console.log("Auto beat");
-			//beatCount = 0;
-			
-			for(let i = 0; i < autoBeats.length; ++i) {
-				let aBeat = autoBeats[i];
-				printArray(`A Beat[${i}]`, aBeat);
-				for(let ii = 0; ii < aBeat.length; ++ii) {
-					let aTap = aBeat[ii];
-					autoSources[i] = audioContext.createBufferSource();
-					autoSources[i].buffer = autoBuffers[aTap.idx];
-					autoSources[i].connect(audioContext.destination);
-					//let aTime = (audioContext.currentTime + (aTap.tick/10));
-					let aTime = (frameStartTime + aTap.time);
-					autoSources[i].start(aTime);
-					console.log(`Play ${aBeat[ii].idx} at ${aTime}`);
-				}
-			}
-		}
-		
-		if(0 == beatCount){
-			lastMeasure = measureNotes;
-		}
-		measureNotes = [];
-	}
-	
-	console.log(`Tick: ${GET_TICKS()} | audioTick: ${audioTick/10}s | trueTick: ${trueTick/10}s`);
-	printArray("Measure", measureNotes);
-	if(hasTapped) {
-		++audioTick;
-	}
-	//++trueTick;	
-}
 
 function compareBeats(currMeasure, lastMeasure)
 {
@@ -459,7 +385,7 @@ function compareBeats(currMeasure, lastMeasure)
 			{
 				if(Math.abs(currNote.time - lastNote.time) > .2)
 				{
-					console.log("Got Here 1");
+					//console.log("Got Here 1");
 					return false;
 				}
 				else
@@ -468,11 +394,11 @@ function compareBeats(currMeasure, lastMeasure)
 				}
 			}
 		}
-					console.log("Got Here 2");
+		//console.log("Got Here 2");
 		console.log("Matching-ish beats");
 		return true;
 	}
 	
-					console.log("Got Here 3");
+	//console.log("Got Here 3");
 	return false;
 }
