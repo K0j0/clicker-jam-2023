@@ -1,3 +1,22 @@
+Bring back the concept of a measure. And the beat will repeat with respect to that measure. So yeah, going back to ticks. Notes are recorded explicitly and cleared explicitly though. Their tick and be greater than the measure length. Autobeats will still be queued up at the start of the measure. Add metronome sound.
+
+
+Play sequences on beats.....? How?
+-When first sequence stored and nextPlay is being set > Determine when is the next "beat" a loop would fall closest to?
+...
+Prefer spacing. Don't adjust space for when to start next sequence as first adjustment.
+
+Another thought. Drift doesn't matter till there's more than 1 loop.  For every 1+ loop, keep track of the space between the first note of it and the first note of the first sequence. When it's time to play again
+
+Actually, I don't think I can adjust it dynamically. I need to put it in a beat. Bring back tick?
+
+Which beat interval is closest? (1/16, 1/8, 1/4, etc)? Could divide space by each and see which is closer to 0. Would that work? Yeah, can do float modulo.
+
+Round to interval
+
+-----------------------------------------
+With purely time there's more opportunity for drift if the intervals are imperfect. Could space be moved to the nearest interval?
+
 New sequence tracking...
 Tracking sequence flag > Sets true on tap > Sets false on a certain kind of tap > OnTap: store notes and delta time from previous note in sequence. On last note of sequence: Compare with previous sequence > If close enough to match > Start loop interval > Schedule sound to play ahead starting at interval from last note of previous sequence to first note of current one. Interval should be like half that time. > At interval repeat the note (this is if doing setTimeout, with setInterval this wouldn't be necessary.
 

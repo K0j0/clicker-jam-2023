@@ -60,6 +60,7 @@ function setup()
 	
 	app.ticker.add(tick);
 }
+var FRAME = 0;
 
 function OnKeyDown(e)
 {
@@ -197,7 +198,7 @@ function makeBoxes()
 	bar = new PIXI.Graphics();
 	bar.beginFill(0xFFFFFF);
 	bar.drawRect(0, 0, 10, WINDOW_H);
-	//app.stage.addChild(bar);
+	app.stage.addChild(bar);
 	
 	app.stage.addChild(box1a);
 	app.stage.addChild(box1);
@@ -301,6 +302,42 @@ function Sequence(_notes, _space) {
 	}
 }
 
+function AdjustSpace(space)
+{
+	/*
+	Have array of intervals
+	Get modulo for each
+	Determine which had smallest
+	Divide space by that interval
+	Round to nearest interval from space
+	Return that value as newSpace
+	*/
+	const intervals = [1/16, 1/8, 1/4, 1/2, 1];
+	var values = [];
+	
+	for(let i = 0; i < intervals.length; ++i) {
+		values[i] = space % intervals[i];
+	}
+	
+	var min = 9999;
+	var mIndex = -1;
+	var interval = 0;
+	for(let i = 0; i < values.length; ++i) {
+		if(values[i] < min) {
+			mIndex = i;
+			min = values[i];
+			interval = intervals[i];
+		}
+	}
+	
+	var foo = space % interval;
+	if(foo < interval/2){
+		return space - foo;
+	}
+	else {
+		return (space - foo) + interval;
+	}
+}
 
 
 var autoBuffers;
@@ -316,7 +353,7 @@ function onTap(ctx)
 		}, TICK_LENGTH);
 		*/
 		autoBuffers = [...BUFFER_LIST]; // Should be a copy?
-		//TweenLite.to(bar, {x:WINDOW_W, duration:(MEASURE_LENGTH/1000), repeat:-1, ease: "linear"});
+		TweenLite.to(bar, {x:WINDOW_W, duration:(MEASURE_LENGTH/1000), repeat:-1, ease: "linear"});
 	}
 	
 	/*
@@ -346,11 +383,14 @@ function onTap(ctx)
 		
 		if(compareBeats(measureNotes, lastMeasure)) {
 			++beatCount;
-			console.log("Another one");
-			let space = measureNotes[0].trueTime - lastMeasure[lastMeasure.length-1].trueTime;
-			var seq = new Sequence(measureNotes, space);
-			SEQS.push(seq);
-			seq.Play(audioContext.currentTime+space);
+			if(beatCount >= 2){
+				console.log("Another one");
+				let space = measureNotes[0].trueTime - lastMeasure[lastMeasure.length-1].trueTime;
+				let newSpace = AdjustSpace(space);
+				var seq = new Sequence(measureNotes, space);
+				SEQS.push(seq);
+				seq.Play(audioContext.currentTime+space);
+			}
 		}
 		else {
 			beatCount = 0;
@@ -377,10 +417,13 @@ function tick()
 {
 	//console.log("tick");
 	//const THRESH
-	for(s of SEQS) {
-		if(SOUND_NOW() > s.lastPlay && SOUND_NOW() > s.nextPlay){
-			let nextTime = s.lastPlay + s.space;
-			s.Play(nextTime);
+	++FRAME;
+	if(FRAME%10 == 0){
+		for(s of SEQS) {
+			if(SOUND_NOW() > s.lastPlay && SOUND_NOW() > s.nextPlay){
+				let nextTime = s.lastPlay + s.space;
+				s.Play(nextTime);
+			}
 		}
 	}
 }
@@ -400,6 +443,7 @@ var measureNotes = [];
 var autoBeats = [];
 const BPM = 60;
 const MEASURE_LENGTH =  (1 / (BPM / 60) * 1000); // milliseconds
+const BEAT_DURATION = 1 / (BPM / 60);
 var lastMeasure = [];
 var beatCount = 0;
 var hasTapped = false;
